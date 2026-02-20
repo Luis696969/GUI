@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BioSim Pro - Interfaz de Simulación</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="bg-light">
+
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-dark">BioSim <span class="text-primary">Interface</span></h1>
+            <p class="text-muted">Configuración de parámetros para simulación de difusión celular.</p>
+        </header>
+
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="card p-4 shadow-sm h-100">
+                    <h5 class="mb-3">Configuración de Dominio</h5>
+                    <div class="row g-3">
+                        <div class="col-6"><label>Lx</label><input type="number" id="dom_Lx" class="form-control" value="6.0" step="0.1"></div>
+                        <div class="col-6"><label>Ly</label><input type="number" id="dom_Ly" class="form-control" value="0.3" step="0.1"></div>
+                        <div class="col-6"><label>Nx</label><input type="number" id="dom_Nx" class="form-control" value="500"></div>
+                        <div class="col-6"><label>Ny</label><input type="number" id="dom_Ny" class="form-control" value="25"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card p-4 shadow-sm h-100">
+                    <h5 class="mb-3">Simulación</h5>
+                    <div class="row g-3">
+                        <div class="col-6"><label>T (Segundos)</label><input type="number" id="sim_T" class="form-control" value="7200"></div>
+                        <div class="col-6"><label>dt</label><input type="number" id="sim_dt" class="form-control" value="0.01" step="0.001"></div>
+                        <div class="col-12 text-muted small mt-3">Los tiempos de ploteo se calculan automáticamente.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Componentes Químicos</h3>
+                <button class="btn btn-primary" onclick="addItem('chemicals')">+ Añadir Químico</button>
+            </div>
+            <div id="container-chemicals" class="dynamic-container"></div>
+        </div>
+
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Células</h3>
+                <button class="btn btn-primary" onclick="addItem('cells')">+ Añadir Célula</button>
+            </div>
+            <div id="container-cells" class="dynamic-container"></div>
+        </div>
+
+        <div class="d-grid mt-5">
+            <button class="btn btn-success btn-lg shadow" onclick="ejecutarSimulacion()">🚀 Generar JSON e Iniciar Simulación</button>
+        </div>
+
+        <div class="mt-5">
+            <label class="form-label fw-bold">Vista previa del JSON de salida:</label>
+            <pre id="json-preview" class="p-3 bg-dark text-info rounded shadow-lg"></pre>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
