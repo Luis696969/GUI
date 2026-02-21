@@ -55,7 +55,36 @@ const templates = {
                 </div>
             </div>
         </div>
-    `
+    `,
+    reactions: `
+        <div class="item-card shadow-sm reaction-entry">
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label>Tipo</label>
+                    <input type="text" class="form-control reaction-type" value="cell consumption waste">
+                </div>
+                <div class="col-md-5">
+                    <label>Substrato</label>
+                    <input type="text" class="form-control reaction-substrates" value="Glucose">
+                </div>
+                <div class="col-md-5">
+                    <label>Producto</label>
+                    <input type="text" class="form-control reaction-products" value="Waste">
+                </div>
+                <div class="col-md-5">
+                    <label>Biológicos</label>
+                    <input type="text" class="form-control reaction-biologics" value="Cancer cells">
+                </div>
+                <div class="col-md-5">
+                    <laberl>Coeficientes</label>
+                    <input type="number" class="form-control reaction-coef" value="0.01" step="0.001">
+                </div>
+                <div class="col-md-5 d-flex align-items-end">
+                    <button class="btn btn-outline-danger w-100" onclick="this.closest('.item-card').remove()">Eliminar</button>
+                </div>
+            </div>
+        </div>
+    `,
 };
 
 function addItem(type) {
@@ -79,7 +108,8 @@ function ejecutarSimulacion() {
             run_solver: true
         },
         chemicals: [],
-        cells: []  
+        cells: [],
+        reactions: [] 
     };
 
     // Extraemos los químicos añadidos
