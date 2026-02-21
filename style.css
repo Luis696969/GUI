@@ -28,6 +28,10 @@ body {
     border-left-color: #6610f2; /* Color morado para células */
 }
 
+.item-card-reaction {
+    border-left-color: #dc3545; /* Color rojo para reacciones */
+}
+
 /* El cuadro de texto negro para el JSON */
 pre {
     max-height: 400px;
