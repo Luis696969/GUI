@@ -46,3 +46,11 @@ label {
     color: #495057;
     margin-bottom: 3px;
 }
+
+.chip button {
+  text-decoration: none;
+  line-height: 1;
+}
+.chip button:hover {
+  opacity: 0.85;
+}
