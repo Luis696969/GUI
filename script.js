@@ -73,10 +73,10 @@ const templates = {
                 </div>
                 <div class="col-md-5">
                     <label>Biológicos</label>
-                    <input type="text" class="form-control reaction-biologics" value="Cancer cells">
+                    <input type="text" class="form-control reaction-biologicals" value="Cancer cells">
                 </div>
                 <div class="col-md-5">
-                    <laberl>Coeficientes</label>
+                    <label>Coeficientes</label>
                     <input type="number" class="form-control reaction-coef" value="0.01" step="0.001">
                 </div>
                 <div class="col-md-5 d-flex align-items-end">
@@ -129,6 +129,17 @@ function ejecutarSimulacion() {
             concentration: parseFloat(el.querySelector('.cell-conc').value),
             diffusion_coef: parseFloat(el.querySelector('.cell-coef').value),
             shape: el.querySelector('.cell-shape').value
+        });
+    });
+
+    // Extraemos las reacciones añadidas
+    document.querySelectorAll('.reaction-entry').forEach(el => {
+        finalJSON.reactions.push({
+            type: el.querySelector('.reaction-type').value,
+            substrates: el.querySelector('.reaction-substrates').value,
+            products: el.querySelector('.reaction-products').value,
+            biologicals: el.querySelector('.reaction-biologicals').value,
+            coefficients: parseFloat(el.querySelector('.reaction-coef').value)
         });
     });
 
