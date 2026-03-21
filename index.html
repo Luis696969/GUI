@@ -9,38 +9,61 @@
 </head>
 <body class="bg-light">
 
-<div class="container py-5">
-    <h1 class="text-center mb-4">BioSim Interface</h1>
+    <div class="container py-5">
+        <header class="text-center mb-5">
+            <h1 class="display-4 fw-bold text-dark">BioSim <span class="text-primary">Interface</span></h1>
+            <p class="text-muted">Configuración de parámetros para simulación de difusión celular.</p>
+        </header>
 
-    <div class="mb-4">
-        <h3>Dispositivos</h3>
-        <button class="btn btn-primary mb-2" onclick="addItem('devices')">+ Añadir Dispositivo</button>
-        <div id="container-devices"></div>
+        <div class="row g-4">
+            <div class="col-md-12">
+                <div class="card p-4 shadow-sm h-100">
+                    <h5 class="mb-3">Simulación</h5>
+                    <div class="row g-3">
+                        <div class="col-6">
+                            <label>T (Segundos)</label>
+                            <input type="number" id="sim_T" class="form-control" value="7200">
+                        </div>
+                        <div class="col-6">
+                            <label>dt</label>
+                            <input type="number" id="sim_dt" class="form-control" value="0.01" step="0.001">
+                        </div>
+                        <div class="col-12 text-muted small mt-3">
+                            Los tiempos de ploteo se calculan automáticamente.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DISPOSITIVOS -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Dispositivos</h3>
+                <button class="btn btn-primary" onclick="addItem('devices')">+ Añadir Dispositivo</button>
+            </div>
+            <div id="container-devices" class="dynamic-container"></div>
+        </div>
+
+        <!-- CONEXIONES -->
+        <div class="mt-5">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h3>Conexiones entre dispositivos</h3>
+                <button class="btn btn-primary" onclick="addItem('links')">+ Añadir Conexión</button>
+            </div>
+            <div id="container-links" class="dynamic-container"></div>
+        </div>
+
+        <div class="d-grid mt-5">
+            <button class="btn btn-success btn-lg shadow" onclick="ejecutarSimulacion()">🚀 Generar JSON e Iniciar Simulación</button>
+        </div>
+
+        <div class="mt-5">
+            <label class="form-label fw-bold">Vista previa del JSON de salida:</label>
+            <pre id="json-preview" class="p-3 bg-dark text-info rounded shadow-lg"></pre>
+        </div>
     </div>
 
-    <div class="mb-4">
-        <h3>Químicos</h3>
-        <button class="btn btn-primary mb-2" onclick="addItem('chemicals')">+ Añadir Químico</button>
-        <div id="container-chemicals"></div>
-    </div>
-
-    <div class="mb-4">
-        <h3>Células</h3>
-        <button class="btn btn-primary mb-2" onclick="addItem('cells')">+ Añadir Célula</button>
-        <div id="container-cells"></div>
-    </div>
-
-    <div class="mb-4">
-        <h3>Reacciones</h3>
-        <button class="btn btn-primary mb-2" onclick="addItem('reactions')">+ Añadir Reacción</button>
-        <div id="container-reactions"></div>
-    </div>
-
-    <button class="btn btn-success" onclick="ejecutarSimulacion()">Generar JSON</button>
-
-    <pre id="json-preview" class="mt-4"></pre>
-</div>
-
-<script src="script.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
