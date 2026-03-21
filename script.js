@@ -3,8 +3,11 @@ let deviceCounter = 0;
 // Plantillas HTML
 const templates = {
   devices: `
-    <div class="item-card item-card-device shadow-sm device-entry" data-device-id="">
-      <div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="item-card item-card-device shadow-sm device-entry" data-device-id="" data-collapsible-card>
+    ${makeCardHeader('Dispositivo')}
+
+    <div class="collapsible-content">
+      <div class="d-flex justify-content-between align-items-start mb-3">
         <div class="flex-grow-1 me-3">
           <label>Nombre del Dispositivo</label>
           <input type="text" class="form-control device-name" value="Device" oninput="refreshAllSelects()">
@@ -15,7 +18,9 @@ const templates = {
         </button>
       </div>
 
-      <h6 class="mb-3 text-primary">Dominio del dispositivo</h6>
+      <div class="section-divider"></div>
+      <h6 class="mb-3 text-info">Dominio del dispositivo</h6>
+
       <div class="row g-3 mb-4">
         <div class="col-md-3">
           <label>Lx</label>
@@ -35,7 +40,7 @@ const templates = {
         </div>
       </div>
 
-      <div class="d-flex flex-wrap gap-2 mb-4">
+      <div class="device-toolbar mb-4">
         <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'chemicals')">+ Añadir Químico</button>
         <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'cells')">+ Añadir Célula</button>
         <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'reactions')">+ Añadir Reacción</button>
@@ -56,10 +61,14 @@ const templates = {
         <div class="dynamic-container device-reactions"></div>
       </div>
     </div>
-  `,
+  </div>
+`,
 
   chemicals: `
-    <div class="item-card shadow-sm chemical-entry">
+  <div class="item-card shadow-sm chemical-entry" data-collapsible-card>
+    ${makeCardHeader('Químico')}
+
+    <div class="collapsible-content">
       <div class="row g-3">
         <div class="col-md-3">
           <label>Nombre Químico</label>
@@ -88,10 +97,14 @@ const templates = {
         </div>
       </div>
     </div>
-  `,
-
+  </div>
+`,
+  
   cells: `
-    <div class="item-card item-card-cell shadow-sm cell-entry">
+  <div class="item-card item-card-cell shadow-sm cell-entry" data-collapsible-card>
+    ${makeCardHeader('Célula')}
+
+    <div class="collapsible-content">
       <div class="row g-3">
         <div class="col-md-4">
           <label>Nombre de Célula</label>
@@ -120,10 +133,14 @@ const templates = {
         </div>
       </div>
     </div>
-  `,
+  </div>
+`,
 
   reactions: `
-    <div class="item-card item-card-reaction shadow-sm reaction-entry">
+  <div class="item-card item-card-reaction shadow-sm reaction-entry" data-collapsible-card>
+    ${makeCardHeader('Reacción')}
+
+    <div class="collapsible-content">
       <div class="row g-3">
         <div class="col-md-4">
           <label>Tipo</label>
@@ -174,10 +191,14 @@ const templates = {
         </div>
       </div>
     </div>
-  `,
+  </div>
+`,
 
   links: `
-    <div class="item-card item-card-link shadow-sm link-entry">
+  <div class="item-card item-card-link shadow-sm link-entry" data-collapsible-card>
+    ${makeCardHeader('Conexión')}
+
+    <div class="collapsible-content">
       <div class="row g-3">
         <div class="col-md-4">
           <label>Desde dispositivo</label>
@@ -199,8 +220,29 @@ const templates = {
         </div>
       </div>
     </div>
-  `
-};
+  </div>
+`,
+  
+function toggleCollapse(buttonEl) {
+  const card = buttonEl.closest('[data-collapsible-card]');
+  if (!card) return;
+
+  const content = card.querySelector('.collapsible-content');
+  if (!content) return;
+
+  const collapsed = content.classList.toggle('is-collapsed');
+  buttonEl.classList.toggle('collapsed', collapsed);
+  buttonEl.innerHTML = collapsed ? '▸' : '▾';
+}
+
+function makeCardHeader(title, extraClass = '') {
+  return `
+    <div class="d-flex justify-content-between align-items-center mb-3 ${extraClass}">
+      <h6 class="mb-0">${title}</h6>
+      <button type="button" class="collapsible-toggle" onclick="toggleCollapse(this)">▾</button>
+    </div>
+  `;
+}
 
 function addItem(type) {
   const container = document.getElementById(`container-${type}`);
