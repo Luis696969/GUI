@@ -249,9 +249,34 @@ function addChipFromSelect(buttonEl, field) {
   const card = buttonEl.closest('.reaction-entry');
   if (!card) return;
 
+  let select;
+  if (field === 'substrates') select = card.querySelector('.reaction-substrate-select');
+  if (field === 'products') select = card.querySelector('.reaction-product-select');
+  if (field === 'biologicals') select = card.querySelector('.reaction-biological-select');
+
   if (!select || !select.value) {
-  alert("Selecciona un elemento antes de añadir.");
-  return;
+    alert("Selecciona un elemento antes de añadir.");
+    return;
+  }
+
+  const value = normalizeText(decodeURIComponent(select.value));
+  if (!value) return;
+
+  const container = card.querySelector(`.chip-container[data-field="${field}"]`);
+  if (!container) return;
+
+  const existing = Array.from(container.querySelectorAll('.chip'))
+    .map(ch => decodeURIComponent(ch.dataset.value || "").toLowerCase());
+
+  if (existing.includes(value.toLowerCase())) return;
+
+  container.insertAdjacentHTML('beforeend', `
+    <span class="chip badge rounded-pill bg-secondary me-2 mb-2" data-value="${encodeURIComponent(value)}">
+      ${escapeHtml(value)}
+      <button type="button" class="btn btn-sm btn-link text-light p-0 ms-2"
+        onclick="this.closest('.chip').remove()" aria-label="Eliminar">✕</button>
+    </span>
+  `);
 }
 
   let select;
@@ -395,32 +420,43 @@ function refreshReactionSelects() {
   });
 }
 
+function checkDuplicateNamesInDevice(deviceEl, entrySelector, inputSelector, label) {
+  const seen = new Set();
+
+  deviceEl.querySelectorAll(entrySelector).forEach(el => {
+    const name = normalizeText(el.querySelector(inputSelector)?.value);
+    if (!name) return;
+
+    const key = name.toLowerCase();
+    if (seen.has(key)) {
+      throw new Error(`Nombre duplicado en ${label}: "${name}"`);
+    }
+    seen.add(key);
+  });
+}
+
 function forceReactionCleanup() {
-  document.querySelectorAll('.reaction-entry').forEach(reactionEl => {
-    ['substrates', 'products', 'biologicals'].forEach(field => {
-      const validOptions = [];
+  document.querySelectorAll('.device-entry').forEach(deviceEl => {
+    const validChemicals = Array.from(deviceEl.querySelectorAll('.chemical-entry .chem-name'))
+      .map(el => normalizeText(el.value))
+      .filter(Boolean);
 
-      const device = reactionEl.closest('.device-entry');
+    const validCells = Array.from(deviceEl.querySelectorAll('.cell-entry .cell-name'))
+      .map(el => normalizeText(el.value))
+      .filter(Boolean);
 
-      if (field !== 'biologicals') {
-        validOptions.push(
-          ...Array.from(device.querySelectorAll('.chemical-entry .chem-name'))
-            .map(el => normalizeText(el.value))
-        );
-      } else {
-        validOptions.push(
-          ...Array.from(device.querySelectorAll('.cell-entry .cell-name'))
-            .map(el => normalizeText(el.value))
-        );
-      }
+    deviceEl.querySelectorAll('.reaction-entry').forEach(reactionEl => {
+      ['substrates', 'products', 'biologicals'].forEach(field => {
+        const validOptions = field === 'biologicals' ? validCells : validChemicals;
+        const container = reactionEl.querySelector(`.chip-container[data-field="${field}"]`);
+        if (!container) return;
 
-      const container = reactionEl.querySelector(`.chip-container[data-field="${field}"]`);
-
-      Array.from(container.querySelectorAll('.chip')).forEach(chip => {
-        const value = decodeURIComponent(chip.dataset.value || "");
-        if (!validOptions.includes(value)) {
-          chip.remove();
-        }
+        Array.from(container.querySelectorAll('.chip')).forEach(chip => {
+          const value = decodeURIComponent(chip.dataset.value || "");
+          if (!validOptions.includes(value)) {
+            chip.remove();
+          }
+        });
       });
     });
   });
@@ -449,11 +485,13 @@ function checkDuplicateNames(containerSelector, inputSelector, label) {
 }
 
 function ejecutarSimulacion() {
-  if (document.querySelectorAll('.device-entry').length === 0) {
-  alert("Debes añadir al menos un dispositivo.");
-  return;
-}
-  
+  const deviceEntries = document.querySelectorAll('.device-entry');
+
+  if (deviceEntries.length === 0) {
+    alert("Debes añadir al menos un dispositivo.");
+    return;
+  }
+
   const finalJSON = {
     simulation: {
       T: parseInt(document.getElementById('sim_T').value),
@@ -466,91 +504,111 @@ function ejecutarSimulacion() {
   };
 
   try {
-  checkDuplicateNames('.chemical-entry', '.chem-name', 'químicos');
-  checkDuplicateNames('.cell-entry', '.cell-name', 'células');
-} catch (e) {
-  return;
-}
-
-  document.querySelectorAll('.device-entry').forEach(deviceEl => {
-    const deviceObj = {
-      id: deviceEl.dataset.deviceId,
-      name: normalizeText(deviceEl.querySelector('.device-name').value),
-      domain: {
-        Lx: parseFloat(deviceEl.querySelector('.dev_Lx').value),
-        Ly: parseFloat(deviceEl.querySelector('.dev_Ly').value),
-        Nx: parseInt(deviceEl.querySelector('.dev_Nx').value),
-        Ny: parseInt(deviceEl.querySelector('.dev_Ny').value)
-      },
-      chemicals: [],
-      cells: [],
-      reactions: []
-    };
-
-    deviceEl.querySelectorAll('.chemical-entry').forEach(el => {
-      deviceObj.chemicals.push({
-        name: normalizeText(el.querySelector('.chem-name').value),
-        max_concentration: parseFloat(el.querySelector('.chem-max-concentration').value),
-        diffusion_coef: parseFloat(el.querySelector('.chem-coef').value),
-        initial_profile: el.querySelector('.chem-profile').value
-      });
-    });
-
-    deviceEl.querySelectorAll('.cell-entry').forEach(el => {
-      deviceObj.cells.push({
-        name: normalizeText(el.querySelector('.cell-name').value),
-        concentration: parseFloat(el.querySelector('.cell-conc').value),
-        diffusion_coef: parseFloat(el.querySelector('.cell-coef').value),
-        shape: el.querySelector('.cell-shape').value
-      });
-    });
-
-    deviceEl.querySelectorAll('.reaction-entry').forEach(el => {
-      const type = normalizeText(el.querySelector('.reaction-type')?.value);
-      const substrates = getChips(el, 'substrates');
-      const products = getChips(el, 'products');
-      const biologicals = getChips(el, 'biologicals');
-      const coefficients = getChips(el, 'coefficients')
-        .map(v => Number(v))
-        .filter(n => Number.isFinite(n));
-
-      const reactionObj = {
-        type,
-        substrates,
-        products,
-        biologicals
-      };
-
-      if (coefficients.length > 0) {
-        reactionObj.coefficients = coefficients;
+    deviceEntries.forEach(deviceEl => {
+      const deviceName = normalizeText(deviceEl.querySelector('.device-name')?.value);
+      if (!deviceName) {
+        throw new Error("Todos los dispositivos deben tener nombre.");
       }
 
-      deviceObj.reactions.push(reactionObj);
+      checkDuplicateNamesInDevice(deviceEl, '.chemical-entry', '.chem-name', 'químicos');
+      checkDuplicateNamesInDevice(deviceEl, '.cell-entry', '.cell-name', 'células');
+
+      const deviceObj = {
+        id: deviceEl.dataset.deviceId,
+        name: deviceName,
+        domain: {
+          Lx: parseFloat(deviceEl.querySelector('.dev_Lx').value),
+          Ly: parseFloat(deviceEl.querySelector('.dev_Ly').value),
+          Nx: parseInt(deviceEl.querySelector('.dev_Nx').value),
+          Ny: parseInt(deviceEl.querySelector('.dev_Ny').value)
+        },
+        chemicals: [],
+        cells: [],
+        reactions: []
+      };
+
+      deviceEl.querySelectorAll('.chemical-entry').forEach(el => {
+        const name = normalizeText(el.querySelector('.chem-name').value);
+        if (!name) {
+          throw new Error(`Hay un químico sin nombre en ${deviceName}.`);
+        }
+
+        deviceObj.chemicals.push({
+          name,
+          max_concentration: parseFloat(el.querySelector('.chem-max-concentration').value),
+          diffusion_coef: parseFloat(el.querySelector('.chem-coef').value),
+          initial_profile: el.querySelector('.chem-profile').value
+        });
+      });
+
+      deviceEl.querySelectorAll('.cell-entry').forEach(el => {
+        const name = normalizeText(el.querySelector('.cell-name').value);
+        if (!name) {
+          throw new Error(`Hay una célula sin nombre en ${deviceName}.`);
+        }
+
+        deviceObj.cells.push({
+          name,
+          concentration: parseFloat(el.querySelector('.cell-conc').value),
+          diffusion_coef: parseFloat(el.querySelector('.cell-coef').value),
+          shape: el.querySelector('.cell-shape').value
+        });
+      });
+
+      deviceEl.querySelectorAll('.reaction-entry').forEach(el => {
+        const type = normalizeText(el.querySelector('.reaction-type')?.value);
+        const substrates = getChips(el, 'substrates');
+        const products = getChips(el, 'products');
+        const biologicals = getChips(el, 'biologicals');
+        const coefficients = getChips(el, 'coefficients')
+          .map(v => Number(v))
+          .filter(n => Number.isFinite(n));
+
+        if (!type) {
+          throw new Error(`Hay una reacción sin tipo en ${deviceName}.`);
+        }
+
+        const reactionObj = {
+          type,
+          substrates,
+          products,
+          biologicals
+        };
+
+        if (coefficients.length > 0) {
+          reactionObj.coefficients = coefficients;
+        }
+
+        deviceObj.reactions.push(reactionObj);
+      });
+
+      finalJSON.devices.push(deviceObj);
     });
 
-    finalJSON.devices.push(deviceObj);
-  });
+    document.querySelectorAll('.link-entry').forEach(linkEl => {
+      const from = linkEl.querySelector('.link-from')?.value
+        ? decodeURIComponent(linkEl.querySelector('.link-from').value)
+        : "";
 
-  document.querySelectorAll('.link-entry').forEach(linkEl => {
-  const from = linkEl.querySelector('.link-from')?.value
-    ? decodeURIComponent(linkEl.querySelector('.link-from').value)
-    : "";
+      const to = linkEl.querySelector('.link-to')?.value
+        ? decodeURIComponent(linkEl.querySelector('.link-to').value)
+        : "";
 
-  const to = linkEl.querySelector('.link-to')?.value
-    ? decodeURIComponent(linkEl.querySelector('.link-to').value)
-    : "";
+      const type = normalizeText(linkEl.querySelector('.link-type')?.value);
 
-  const type = normalizeText(linkEl.querySelector('.link-type')?.value);
+      if (!from || !to) return;
 
-  if (!from || !to) return;
+      if (from === to) {
+        throw new Error("Un dispositivo no puede conectarse consigo mismo.");
+      }
 
-  if (from === to) {
-    alert("Un dispositivo no puede conectarse consigo mismo.");
+      finalJSON.links.push({ from, to, type });
+    });
+
+  } catch (error) {
+    alert(error.message || "Hay errores en la configuración.");
     return;
   }
-
-  finalJSON.links.push({ from, to, type });
-});
 
   document.getElementById('json-preview').innerText = JSON.stringify(finalJSON, null, 2);
 
