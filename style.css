@@ -1,72 +1,213 @@
-/* Variables de color */
 :root {
-    --primary-color: #0d6efd;
-    --accent-color: #198754;
+  --bg-main: #0f1117;
+  --bg-panel: #171b24;
+  --bg-panel-2: #1e2430;
+  --bg-soft: #232b3a;
+  --border: #2f384a;
+  --text-main: #e8ecf3;
+  --text-soft: #aeb8c9;
+  --primary-color: #4da3ff;
+  --accent-color: #21c77a;
+  --danger-color: #ff6b6b;
+  --warning-color: #ffb020;
 }
 
 body {
-    background-color: #f8f9fa !important;
+  background: radial-gradient(circle at top, #171c26 0%, #0f1117 55%, #0a0d13 100%) !important;
+  color: var(--text-main);
+  min-height: 100vh;
 }
 
-/* Tarjetas dinámicas que aparecen al pulsar el botón */
+.container {
+  max-width: 1400px;
+}
+
+.card {
+  background: rgba(23, 27, 36, 0.92) !important;
+  border: 1px solid var(--border) !important;
+  color: var(--text-main) !important;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+}
+
 .item-card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 15px;
-    border-left: 6px solid var(--primary-color);
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-    animation: slideIn 0.3s ease-out; /* Animación de entrada */
+  background: linear-gradient(180deg, rgba(30, 36, 48, 0.98), rgba(23, 27, 36, 0.98));
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-left: 6px solid var(--primary-color);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+  animation: slideIn 0.25s ease-out;
 }
 
 @keyframes slideIn {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .item-card-cell {
-    border-left-color: #6610f2; /* Color morado para células */
+  border-left-color: #8b5cf6;
 }
 
 .item-card-reaction {
-    border-left-color: #dc3545; /* Color rojo para reacciones */
+  border-left-color: #ef4444;
 }
 
-/* El cuadro de texto negro para el JSON */
+.item-card-device {
+  border-left-color: #22d3ee;
+}
+
+.item-card-link {
+  border-left-color: #f59e0b;
+}
+
+.device-entry {
+  background: linear-gradient(180deg, rgba(26, 31, 42, 0.98), rgba(20, 24, 33, 0.98));
+}
+
+.device-entry h6 {
+  font-weight: 700;
+  color: #c8d4e8;
+  margin-bottom: 10px;
+}
+
+h1, h3, h5, h6, label {
+  color: var(--text-main);
+}
+
+.text-muted,
+.small,
+.form-text {
+  color: var(--text-soft) !important;
+}
+
+.form-control,
+.form-select {
+  background: var(--bg-soft) !important;
+  color: var(--text-main) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px;
+}
+
+.form-control:focus,
+.form-select:focus {
+  background: var(--bg-soft) !important;
+  color: var(--text-main) !important;
+  border-color: var(--primary-color) !important;
+  box-shadow: 0 0 0 0.2rem rgba(77, 163, 255, 0.18) !important;
+}
+
+.form-control::placeholder {
+  color: #8d97a8;
+}
+
+.btn {
+  border-radius: 12px;
+  font-weight: 600;
+}
+
+.btn-primary {
+  background: #2563eb;
+  border-color: #2563eb;
+}
+
+.btn-success {
+  background: #16a34a;
+  border-color: #16a34a;
+}
+
+.btn-outline-danger {
+  color: #ff8a8a;
+  border-color: #ff8a8a;
+}
+
+.btn-outline-danger:hover {
+  background: #ff8a8a;
+  color: #10131a;
+}
+
+.btn-outline-primary {
+  color: #8fc4ff;
+  border-color: #8fc4ff;
+}
+
+.btn-outline-primary:hover {
+  background: #8fc4ff;
+  color: #0f1117;
+}
+
 pre {
-    max-height: 400px;
-    overflow-y: auto;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9rem;
+  max-height: 420px;
+  overflow-y: auto;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.9rem;
+  background: #0b1220 !important;
+  color: #67e8f9 !important;
+  border: 1px solid #243047;
+  border-radius: 16px;
 }
 
 label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #495057;
-    margin-bottom: 3px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.chip {
+  font-size: 0.85rem;
+  padding: 7px 12px;
 }
 
 .chip button {
   text-decoration: none;
   line-height: 1;
 }
+
 .chip button:hover {
   opacity: 0.85;
 }
 
-.item-card-device {
-    border-left-color: #0dcaf0;
+.collapsible-toggle {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg-soft);
+  color: var(--text-main);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
 }
 
-.item-card-link {
-    border-left-color: #fd7e14;
+.collapsible-toggle:hover {
+  background: #2a3446;
 }
 
-.device-entry {
-    background: #fdfefe;
+.collapsible-toggle.collapsed {
+  transform: rotate(-90deg);
 }
 
-.device-entry h6 {
-    font-weight: 700;
+.collapsible-content.is-collapsed {
+  display: none;
+}
+
+.section-divider {
+  border-top: 1px solid var(--border);
+  margin: 16px 0 10px;
+}
+
+.device-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.header-hero {
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.18), rgba(34, 211, 238, 0.12));
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 28px 20px;
 }
