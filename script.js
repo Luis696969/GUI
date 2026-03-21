@@ -1,228 +1,5 @@
 let deviceCounter = 0;
 
-// Plantillas HTML
-const templates = {
-  devices: `
-  <div class="item-card item-card-device shadow-sm device-entry" data-device-id="" data-collapsible-card>
-    ${makeCardHeader('Dispositivo')}
-
-    <div class="collapsible-content">
-      <div class="d-flex justify-content-between align-items-start mb-3">
-        <div class="flex-grow-1 me-3">
-          <label>Nombre del Dispositivo</label>
-          <input type="text" class="form-control device-name" value="Device" oninput="refreshAllSelects()">
-        </div>
-        <button class="btn btn-outline-danger mt-4"
-          onclick="this.closest('.device-entry').remove(); refreshAllSelects();">
-          Eliminar dispositivo
-        </button>
-      </div>
-
-      <div class="section-divider"></div>
-      <h6 class="mb-3 text-info">Dominio del dispositivo</h6>
-
-      <div class="row g-3 mb-4">
-        <div class="col-md-3">
-          <label>Lx</label>
-          <input type="number" class="form-control dev_Lx" value="6.0" step="0.1">
-        </div>
-        <div class="col-md-3">
-          <label>Ly</label>
-          <input type="number" class="form-control dev_Ly" value="0.3" step="0.1">
-        </div>
-        <div class="col-md-3">
-          <label>Nx</label>
-          <input type="number" class="form-control dev_Nx" value="500">
-        </div>
-        <div class="col-md-3">
-          <label>Ny</label>
-          <input type="number" class="form-control dev_Ny" value="25">
-        </div>
-      </div>
-
-      <div class="device-toolbar mb-4">
-        <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'chemicals')">+ Añadir Químico</button>
-        <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'cells')">+ Añadir Célula</button>
-        <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'reactions')">+ Añadir Reacción</button>
-      </div>
-
-      <div class="mt-3">
-        <h6>Químicos</h6>
-        <div class="dynamic-container device-chemicals"></div>
-      </div>
-
-      <div class="mt-4">
-        <h6>Células</h6>
-        <div class="dynamic-container device-cells"></div>
-      </div>
-
-      <div class="mt-4">
-        <h6>Reacciones</h6>
-        <div class="dynamic-container device-reactions"></div>
-      </div>
-    </div>
-  </div>
-`,
-
-  chemicals: `
-  <div class="item-card shadow-sm chemical-entry" data-collapsible-card>
-    ${makeCardHeader('Químico')}
-
-    <div class="collapsible-content">
-      <div class="row g-3">
-        <div class="col-md-3">
-          <label>Nombre Químico</label>
-          <input type="text" class="form-control chem-name" value="Glucose" oninput="refreshAllSelects()">
-        </div>
-        <div class="col-md-3">
-          <label>Concentración Máxima</label>
-          <input type="number" class="form-control chem-max-concentration" value="5" step="any">
-        </div>
-        <div class="col-md-3">
-          <label>Difusión (coef)</label>
-          <input type="number" class="form-control chem-coef" value="0.00065" step="0.00001">
-        </div>
-        <div class="col-md-3">
-          <label>Perfil Inicial</label>
-          <select class="form-select chem-profile">
-            <option value="uniform">Uniform</option>
-            <option value="zero">Zero</option>
-          </select>
-        </div>
-        <div class="col-md-3 d-flex align-items-end">
-          <button class="btn btn-outline-danger w-100"
-            onclick="this.closest('.chemical-entry').remove(); refreshAllSelects();">
-            Eliminar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-`,
-  
-  cells: `
-  <div class="item-card item-card-cell shadow-sm cell-entry" data-collapsible-card>
-    ${makeCardHeader('Célula')}
-
-    <div class="collapsible-content">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label>Nombre de Célula</label>
-          <input type="text" class="form-control cell-name" value="Cancer cells" oninput="refreshAllSelects()">
-        </div>
-        <div class="col-md-4">
-          <label>Concentración</label>
-          <input type="number" class="form-control cell-conc" value="10" step="any">
-        </div>
-        <div class="col-md-4">
-          <label>Difusión (coef)</label>
-          <input type="number" class="form-control cell-coef" value="0.00065" step="0.00001">
-        </div>
-        <div class="col-md-4">
-          <label>Forma</label>
-          <select class="form-select cell-shape">
-            <option value="ellipse">Elipse</option>
-            <option value="round">Redonda</option>
-          </select>
-        </div>
-        <div class="col-md-4 d-flex align-items-end">
-          <button class="btn btn-outline-danger w-100"
-            onclick="this.closest('.cell-entry').remove(); refreshAllSelects();">
-            Eliminar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-`,
-
-  reactions: `
-  <div class="item-card item-card-reaction shadow-sm reaction-entry" data-collapsible-card>
-    ${makeCardHeader('Reacción')}
-
-    <div class="collapsible-content">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label>Tipo</label>
-          <input type="text" class="form-control reaction-type" value="cell_consumption_waste">
-        </div>
-
-        <div class="col-md-8">
-          <label>Substratos</label>
-          <div class="input-group">
-            <select class="form-select reaction-substrate-select"></select>
-            <button class="btn btn-outline-primary" type="button" onclick="addChipFromSelect(this, 'substrates')">Añadir</button>
-          </div>
-          <div class="chip-container mt-2" data-field="substrates"></div>
-        </div>
-
-        <div class="col-md-8">
-          <label>Productos</label>
-          <div class="input-group">
-            <select class="form-select reaction-product-select"></select>
-            <button class="btn btn-outline-primary" type="button" onclick="addChipFromSelect(this, 'products')">Añadir</button>
-          </div>
-          <div class="chip-container mt-2" data-field="products"></div>
-        </div>
-
-        <div class="col-md-8">
-          <label>Biologicals</label>
-          <div class="input-group">
-            <select class="form-select reaction-biological-select"></select>
-            <button class="btn btn-outline-primary" type="button" onclick="addChipFromSelect(this, 'biologicals')">Añadir</button>
-          </div>
-          <div class="chip-container mt-2" data-field="biologicals"></div>
-        </div>
-
-        <div class="col-md-8">
-          <label>Coeficientes (opcional)</label>
-          <div class="input-group">
-            <input type="number" class="form-control reaction-coef-input" step="any" placeholder="Ej: 0.01">
-            <button class="btn btn-outline-primary" type="button" onclick="addCoef(this)">Añadir coef</button>
-          </div>
-          <div class="chip-container mt-2" data-field="coefficients"></div>
-        </div>
-
-        <div class="col-md-4 d-flex align-items-end">
-          <button class="btn btn-outline-danger w-100"
-            onclick="this.closest('.reaction-entry').remove(); refreshAllSelects();">
-            Eliminar reacción
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-`,
-
-  links: `
-  <div class="item-card item-card-link shadow-sm link-entry" data-collapsible-card>
-    ${makeCardHeader('Conexión')}
-
-    <div class="collapsible-content">
-      <div class="row g-3">
-        <div class="col-md-4">
-          <label>Desde dispositivo</label>
-          <select class="form-select link-from"></select>
-        </div>
-        <div class="col-md-4">
-          <label>Hasta dispositivo</label>
-          <select class="form-select link-to"></select>
-        </div>
-        <div class="col-md-3">
-          <label>Tipo de conexión</label>
-          <input type="text" class="form-control link-type" value="open">
-        </div>
-        <div class="col-md-1 d-flex align-items-end">
-          <button class="btn btn-outline-danger w-100"
-            onclick="this.closest('.link-entry').remove(); refreshAllSelects();">
-            X
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-`,
-  
 function toggleCollapse(buttonEl) {
   const card = buttonEl.closest('[data-collapsible-card]');
   if (!card) return;
@@ -243,6 +20,229 @@ function makeCardHeader(title, extraClass = '') {
     </div>
   `;
 }
+
+const templates = {
+  devices: `
+    <div class="item-card item-card-device shadow-sm device-entry" data-device-id="" data-collapsible-card>
+      ${makeCardHeader('Dispositivo')}
+
+      <div class="collapsible-content">
+        <div class="d-flex justify-content-between align-items-start mb-3">
+          <div class="flex-grow-1 me-3">
+            <label>Nombre del Dispositivo</label>
+            <input type="text" class="form-control device-name" value="Device" oninput="refreshAllSelects()">
+          </div>
+          <button class="btn btn-outline-danger mt-4"
+            onclick="this.closest('.device-entry').remove(); refreshAllSelects();">
+            Eliminar dispositivo
+          </button>
+        </div>
+
+        <div class="section-divider"></div>
+        <h6 class="mb-3 text-info">Dominio del dispositivo</h6>
+
+        <div class="row g-3 mb-4">
+          <div class="col-md-3">
+            <label>Lx</label>
+            <input type="number" class="form-control dev_Lx" value="6.0" step="0.1">
+          </div>
+          <div class="col-md-3">
+            <label>Ly</label>
+            <input type="number" class="form-control dev_Ly" value="0.3" step="0.1">
+          </div>
+          <div class="col-md-3">
+            <label>Nx</label>
+            <input type="number" class="form-control dev_Nx" value="500">
+          </div>
+          <div class="col-md-3">
+            <label>Ny</label>
+            <input type="number" class="form-control dev_Ny" value="25">
+          </div>
+        </div>
+
+        <div class="device-toolbar mb-4">
+          <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'chemicals')">+ Añadir Químico</button>
+          <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'cells')">+ Añadir Célula</button>
+          <button class="btn btn-sm btn-primary" onclick="addItemInDevice(this, 'reactions')">+ Añadir Reacción</button>
+        </div>
+
+        <div class="mt-3">
+          <h6>Químicos</h6>
+          <div class="dynamic-container device-chemicals"></div>
+        </div>
+
+        <div class="mt-4">
+          <h6>Células</h6>
+          <div class="dynamic-container device-cells"></div>
+        </div>
+
+        <div class="mt-4">
+          <h6>Reacciones</h6>
+          <div class="dynamic-container device-reactions"></div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  chemicals: `
+    <div class="item-card shadow-sm chemical-entry" data-collapsible-card>
+      ${makeCardHeader('Químico')}
+
+      <div class="collapsible-content">
+        <div class="row g-3">
+          <div class="col-md-3">
+            <label>Nombre Químico</label>
+            <input type="text" class="form-control chem-name" value="Glucose" oninput="refreshAllSelects()">
+          </div>
+          <div class="col-md-3">
+            <label>Concentración Máxima</label>
+            <input type="number" class="form-control chem-max-concentration" value="5" step="any">
+          </div>
+          <div class="col-md-3">
+            <label>Difusión (coef)</label>
+            <input type="number" class="form-control chem-coef" value="0.00065" step="0.00001">
+          </div>
+          <div class="col-md-3">
+            <label>Perfil Inicial</label>
+            <select class="form-select chem-profile">
+              <option value="uniform">Uniform</option>
+              <option value="zero">Zero</option>
+            </select>
+          </div>
+          <div class="col-md-3 d-flex align-items-end">
+            <button class="btn btn-outline-danger w-100"
+              onclick="this.closest('.chemical-entry').remove(); refreshAllSelects();">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  cells: `
+    <div class="item-card item-card-cell shadow-sm cell-entry" data-collapsible-card>
+      ${makeCardHeader('Célula')}
+
+      <div class="collapsible-content">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label>Nombre de Célula</label>
+            <input type="text" class="form-control cell-name" value="Cancer cells" oninput="refreshAllSelects()">
+          </div>
+          <div class="col-md-4">
+            <label>Concentración</label>
+            <input type="number" class="form-control cell-conc" value="10" step="any">
+          </div>
+          <div class="col-md-4">
+            <label>Difusión (coef)</label>
+            <input type="number" class="form-control cell-coef" value="0.00065" step="0.00001">
+          </div>
+          <div class="col-md-4">
+            <label>Forma</label>
+            <select class="form-select cell-shape">
+              <option value="ellipse">Elipse</option>
+              <option value="round">Redonda</option>
+            </select>
+          </div>
+          <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-outline-danger w-100"
+              onclick="this.closest('.cell-entry').remove(); refreshAllSelects();">
+              Eliminar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  reactions: `
+    <div class="item-card item-card-reaction shadow-sm reaction-entry" data-collapsible-card>
+      ${makeCardHeader('Reacción')}
+
+      <div class="collapsible-content">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label>Tipo</label>
+            <input type="text" class="form-control reaction-type" value="cell_consumption_waste">
+          </div>
+
+          <div class="col-md-8">
+            <label>Substratos</label>
+            <div class="input-group">
+              <select class="form-select reaction-substrate-select"></select>
+              <button class="btn btn-outline-primary" type="button" onclick="addChipFromSelect(this, 'substrates')">Añadir</button>
+            </div>
+            <div class="chip-container mt-2" data-field="substrates"></div>
+          </div>
+
+          <div class="col-md-8">
+            <label>Productos</label>
+            <div class="input-group">
+              <select class="form-select reaction-product-select"></select>
+              <button class="btn btn-outline-primary" type="button" onclick="addChipFromSelect(this, 'products')">Añadir</button>
+            </div>
+            <div class="chip-container mt-2" data-field="products"></div>
+          </div>
+
+          <div class="col-md-8">
+            <label>Biologicals</label>
+            <div class="input-group">
+              <select class="form-select reaction-biological-select"></select>
+              <button class="btn btn-outline-primary" type="button" onclick="addChipFromSelect(this, 'biologicals')">Añadir</button>
+            </div>
+            <div class="chip-container mt-2" data-field="biologicals"></div>
+          </div>
+
+          <div class="col-md-8">
+            <label>Coeficientes (opcional)</label>
+            <div class="input-group">
+              <input type="number" class="form-control reaction-coef-input" step="any" placeholder="Ej: 0.01">
+              <button class="btn btn-outline-primary" type="button" onclick="addCoef(this)">Añadir coef</button>
+            </div>
+            <div class="chip-container mt-2" data-field="coefficients"></div>
+          </div>
+
+          <div class="col-md-4 d-flex align-items-end">
+            <button class="btn btn-outline-danger w-100"
+              onclick="this.closest('.reaction-entry').remove(); refreshAllSelects();">
+              Eliminar reacción
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `,
+
+  links: `
+    <div class="item-card item-card-link shadow-sm link-entry" data-collapsible-card>
+      ${makeCardHeader('Conexión')}
+
+      <div class="collapsible-content">
+        <div class="row g-3">
+          <div class="col-md-4">
+            <label>Desde dispositivo</label>
+            <select class="form-select link-from"></select>
+          </div>
+          <div class="col-md-4">
+            <label>Hasta dispositivo</label>
+            <select class="form-select link-to"></select>
+          </div>
+          <div class="col-md-3">
+            <label>Tipo de conexión</label>
+            <input type="text" class="form-control link-type" value="open">
+          </div>
+          <div class="col-md-1 d-flex align-items-end">
+            <button class="btn btn-outline-danger w-100"
+              onclick="this.closest('.link-entry').remove(); refreshAllSelects();">
+              X
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `
+};
 
 function addItem(type) {
   const container = document.getElementById(`container-${type}`);
@@ -321,31 +321,6 @@ function addChipFromSelect(buttonEl, field) {
   `);
 }
 
-  let select;
-  if (field === 'substrates') select = card.querySelector('.reaction-substrate-select');
-  if (field === 'products') select = card.querySelector('.reaction-product-select');
-  if (field === 'biologicals') select = card.querySelector('.reaction-biological-select');
-
-  const value = normalizeText(select?.value ? decodeURIComponent(select.value) : "");
-  if (!value) return;
-
-  const container = card.querySelector(`.chip-container[data-field="${field}"]`);
-  if (!container) return;
-
-  const existing = Array.from(container.querySelectorAll('.chip'))
-    .map(ch => decodeURIComponent(ch.dataset.value || "").toLowerCase());
-
-  if (existing.includes(value.toLowerCase())) return;
-
-  container.insertAdjacentHTML('beforeend', `
-    <span class="chip badge rounded-pill bg-secondary me-2 mb-2" data-value="${encodeURIComponent(value)}">
-      ${escapeHtml(value)}
-      <button type="button" class="btn btn-sm btn-link text-light p-0 ms-2"
-        onclick="this.closest('.chip').remove()" aria-label="Eliminar">✕</button>
-    </span>
-  `);
-}
-
 function addCoef(buttonEl) {
   const card = buttonEl.closest('.reaction-entry');
   if (!card) return;
@@ -383,10 +358,12 @@ function getChips(card, field) {
 }
 
 function getDevicesInfo() {
-  return Array.from(document.querySelectorAll('.device-entry')).map(deviceEl => ({
-    id: deviceEl.dataset.deviceId,
-    name: normalizeText(deviceEl.querySelector('.device-name')?.value)
-  })).filter(d => d.id && d.name);
+  return Array.from(document.querySelectorAll('.device-entry'))
+    .map(deviceEl => ({
+      id: deviceEl.dataset.deviceId,
+      name: normalizeText(deviceEl.querySelector('.device-name')?.value)
+    }))
+    .filter(d => d.id && d.name);
 }
 
 function fillSelect(selectEl, options, placeholder) {
@@ -417,16 +394,8 @@ function refreshLinkSelects() {
   }));
 
   document.querySelectorAll('.link-entry').forEach(linkEl => {
-    fillSelect(
-      linkEl.querySelector('.link-from'),
-      devices,
-      devices.length ? "Selecciona dispositivo" : "Crea dispositivos primero"
-    );
-    fillSelect(
-      linkEl.querySelector('.link-to'),
-      devices,
-      devices.length ? "Selecciona dispositivo" : "Crea dispositivos primero"
-    );
+    fillSelect(linkEl.querySelector('.link-from'), devices, devices.length ? "Selecciona dispositivo" : "Crea dispositivos primero");
+    fillSelect(linkEl.querySelector('.link-to'), devices, devices.length ? "Selecciona dispositivo" : "Crea dispositivos primero");
   });
 }
 
@@ -443,21 +412,9 @@ function refreshReactionSelects() {
       .map(name => ({ value: name, label: name }));
 
     deviceEl.querySelectorAll('.reaction-entry').forEach(reactionEl => {
-      fillSelect(
-        reactionEl.querySelector('.reaction-substrate-select'),
-        chemOptions,
-        chemOptions.length ? "Elige químico" : "Crea químicos primero"
-      );
-      fillSelect(
-        reactionEl.querySelector('.reaction-product-select'),
-        chemOptions,
-        chemOptions.length ? "Elige químico" : "Crea químicos primero"
-      );
-      fillSelect(
-        reactionEl.querySelector('.reaction-biological-select'),
-        cellOptions,
-        cellOptions.length ? "Elige célula" : "Crea células primero"
-      );
+      fillSelect(reactionEl.querySelector('.reaction-substrate-select'), chemOptions, chemOptions.length ? "Elige químico" : "Crea químicos primero");
+      fillSelect(reactionEl.querySelector('.reaction-product-select'), chemOptions, chemOptions.length ? "Elige químico" : "Crea químicos primero");
+      fillSelect(reactionEl.querySelector('.reaction-biological-select'), cellOptions, cellOptions.length ? "Elige célula" : "Crea células primero");
     });
   });
 }
@@ -555,9 +512,7 @@ function ejecutarSimulacion() {
 
       deviceEl.querySelectorAll('.chemical-entry').forEach(el => {
         const name = normalizeText(el.querySelector('.chem-name').value);
-        if (!name) {
-          throw new Error(`Hay un químico sin nombre en ${deviceName}.`);
-        }
+        if (!name) throw new Error(`Hay un químico sin nombre en ${deviceName}.`);
 
         deviceObj.chemicals.push({
           name,
@@ -569,9 +524,7 @@ function ejecutarSimulacion() {
 
       deviceEl.querySelectorAll('.cell-entry').forEach(el => {
         const name = normalizeText(el.querySelector('.cell-name').value);
-        if (!name) {
-          throw new Error(`Hay una célula sin nombre en ${deviceName}.`);
-        }
+        if (!name) throw new Error(`Hay una célula sin nombre en ${deviceName}.`);
 
         deviceObj.cells.push({
           name,
@@ -590,20 +543,10 @@ function ejecutarSimulacion() {
           .map(v => Number(v))
           .filter(n => Number.isFinite(n));
 
-        if (!type) {
-          throw new Error(`Hay una reacción sin tipo en ${deviceName}.`);
-        }
+        if (!type) throw new Error(`Hay una reacción sin tipo en ${deviceName}.`);
 
-        const reactionObj = {
-          type,
-          substrates,
-          products,
-          biologicals
-        };
-
-        if (coefficients.length > 0) {
-          reactionObj.coefficients = coefficients;
-        }
+        const reactionObj = { type, substrates, products, biologicals };
+        if (coefficients.length > 0) reactionObj.coefficients = coefficients;
 
         deviceObj.reactions.push(reactionObj);
       });
@@ -623,14 +566,10 @@ function ejecutarSimulacion() {
       const type = normalizeText(linkEl.querySelector('.link-type')?.value);
 
       if (!from || !to) return;
-
-      if (from === to) {
-        throw new Error("Un dispositivo no puede conectarse consigo mismo.");
-      }
+      if (from === to) throw new Error("Un dispositivo no puede conectarse consigo mismo.");
 
       finalJSON.links.push({ from, to, type });
     });
-
   } catch (error) {
     alert(error.message || "Hay errores en la configuración.");
     return;
@@ -638,13 +577,9 @@ function ejecutarSimulacion() {
 
   document.getElementById('json-preview').innerText = JSON.stringify(finalJSON, null, 2);
 
-  console.log("Enviando JSON a Python...", finalJSON);
-
   fetch('http://127.0.0.1:8000/run-simulation', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(finalJSON),
   })
     .then(response => response.json())
