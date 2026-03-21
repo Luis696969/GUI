@@ -395,6 +395,22 @@ function refreshAllSelects() {
   refreshLinkSelects();
 }
 
+function checkDuplicateNames(containerSelector, inputSelector, label) {
+  const names = [];
+
+  document.querySelectorAll(containerSelector).forEach(el => {
+    const name = normalizeText(el.querySelector(inputSelector)?.value);
+    if (!name) return;
+
+    if (names.includes(name.toLowerCase())) {
+      alert(`Nombre duplicado en ${label}: "${name}"`);
+      throw new Error("Duplicado detectado");
+    }
+
+    names.push(name.toLowerCase());
+  });
+}
+
 function ejecutarSimulacion() {
   const finalJSON = {
     simulation: {
@@ -406,6 +422,13 @@ function ejecutarSimulacion() {
     devices: [],
     links: []
   };
+
+  try {
+  checkDuplicateNames('.chemical-entry', '.chem-name', 'químicos');
+  checkDuplicateNames('.cell-entry', '.cell-name', 'células');
+} catch (e) {
+  return;
+}
 
   document.querySelectorAll('.device-entry').forEach(deviceEl => {
     const deviceObj = {
@@ -467,20 +490,25 @@ function ejecutarSimulacion() {
   });
 
   document.querySelectorAll('.link-entry').forEach(linkEl => {
-    const from = linkEl.querySelector('.link-from')?.value
-      ? decodeURIComponent(linkEl.querySelector('.link-from').value)
-      : "";
+  const from = linkEl.querySelector('.link-from')?.value
+    ? decodeURIComponent(linkEl.querySelector('.link-from').value)
+    : "";
 
-    const to = linkEl.querySelector('.link-to')?.value
-      ? decodeURIComponent(linkEl.querySelector('.link-to').value)
-      : "";
+  const to = linkEl.querySelector('.link-to')?.value
+    ? decodeURIComponent(linkEl.querySelector('.link-to').value)
+    : "";
 
-    const type = normalizeText(linkEl.querySelector('.link-type')?.value);
+  const type = normalizeText(linkEl.querySelector('.link-type')?.value);
 
-    if (from && to) {
-      finalJSON.links.push({ from, to, type });
-    }
-  });
+  if (!from || !to) return;
+
+  if (from === to) {
+    alert("Un dispositivo no puede conectarse consigo mismo.");
+    return;
+  }
+
+  finalJSON.links.push({ from, to, type });
+});
 
   document.getElementById('json-preview').innerText = JSON.stringify(finalJSON, null, 2);
 
