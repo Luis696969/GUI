@@ -468,22 +468,6 @@ function refreshAllSelects() {
   forceReactionCleanup();
 }
 
-function checkDuplicateNames(containerSelector, inputSelector, label) {
-  const names = [];
-
-  document.querySelectorAll(containerSelector).forEach(el => {
-    const name = normalizeText(el.querySelector(inputSelector)?.value);
-    if (!name) return;
-
-    if (names.includes(name.toLowerCase())) {
-      alert(`Nombre duplicado en ${label}: "${name}"`);
-      throw new Error("Duplicado detectado");
-    }
-
-    names.push(name.toLowerCase());
-  });
-}
-
 function ejecutarSimulacion() {
   const deviceEntries = document.querySelectorAll('.device-entry');
 
