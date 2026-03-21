@@ -249,6 +249,11 @@ function addChipFromSelect(buttonEl, field) {
   const card = buttonEl.closest('.reaction-entry');
   if (!card) return;
 
+  if (!select || !select.value) {
+  alert("Selecciona un elemento antes de añadir.");
+  return;
+}
+
   let select;
   if (field === 'substrates') select = card.querySelector('.reaction-substrate-select');
   if (field === 'products') select = card.querySelector('.reaction-product-select');
@@ -390,9 +395,41 @@ function refreshReactionSelects() {
   });
 }
 
+function forceReactionCleanup() {
+  document.querySelectorAll('.reaction-entry').forEach(reactionEl => {
+    ['substrates', 'products', 'biologicals'].forEach(field => {
+      const validOptions = [];
+
+      const device = reactionEl.closest('.device-entry');
+
+      if (field !== 'biologicals') {
+        validOptions.push(
+          ...Array.from(device.querySelectorAll('.chemical-entry .chem-name'))
+            .map(el => normalizeText(el.value))
+        );
+      } else {
+        validOptions.push(
+          ...Array.from(device.querySelectorAll('.cell-entry .cell-name'))
+            .map(el => normalizeText(el.value))
+        );
+      }
+
+      const container = reactionEl.querySelector(`.chip-container[data-field="${field}"]`);
+
+      Array.from(container.querySelectorAll('.chip')).forEach(chip => {
+        const value = decodeURIComponent(chip.dataset.value || "");
+        if (!validOptions.includes(value)) {
+          chip.remove();
+        }
+      });
+    });
+  });
+}
+
 function refreshAllSelects() {
   refreshReactionSelects();
   refreshLinkSelects();
+  forceReactionCleanup();
 }
 
 function checkDuplicateNames(containerSelector, inputSelector, label) {
@@ -412,6 +449,11 @@ function checkDuplicateNames(containerSelector, inputSelector, label) {
 }
 
 function ejecutarSimulacion() {
+  if (document.querySelectorAll('.device-entry').length === 0) {
+  alert("Debes añadir al menos un dispositivo.");
+  return;
+}
+  
   const finalJSON = {
     simulation: {
       T: parseInt(document.getElementById('sim_T').value),
