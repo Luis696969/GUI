@@ -248,20 +248,25 @@ function addItem(type) {
   const container = document.getElementById(`container-${type}`);
   container.insertAdjacentHTML('beforeend', templates[type]);
 
+  const newElement = container.lastElementChild;
+
   if (type === 'devices') {
-    const lastDevice = container.lastElementChild;
     deviceCounter += 1;
     const newId = `dev_${deviceCounter}`;
-    lastDevice.dataset.deviceId = newId;
-    lastDevice.querySelector('.device-name').value = `Device ${deviceCounter}`;
+    newElement.dataset.deviceId = newId;
+    newElement.querySelector('.device-name').value = `Device ${deviceCounter}`;
   }
 
   refreshAllSelects();
+  updateCounters();
+  revealNewElement(newElement);
 }
 
 function addItemInDevice(buttonEl, type) {
   const deviceCard = buttonEl.closest('.device-entry');
   if (!deviceCard) return;
+
+  expandCollapsibleCard(deviceCard);
 
   let container = null;
   if (type === 'chemicals') container = deviceCard.querySelector('.device-chemicals');
@@ -271,7 +276,12 @@ function addItemInDevice(buttonEl, type) {
   if (!container) return;
 
   container.insertAdjacentHTML('beforeend', templates[type]);
+
+  const newElement = container.lastElementChild;
+
   refreshAllSelects();
+  updateCounters();
+  revealNewElement(newElement);
 }
 
 function getDeviceSummary(deviceEl) {
@@ -341,6 +351,70 @@ function makeCardHeader(title, extraClass = '') {
       <button type="button" class="collapsible-toggle" onclick="toggleCollapse(this)">▾</button>
     </div>
   `;
+}
+
+function expandCollapsibleCard(card) {
+  if (!card) return;
+
+  const content = card.querySelector('.collapsible-content');
+  const toggle = card.querySelector('.collapsible-toggle');
+
+  if (!content || !toggle) return;
+
+  if (content.classList.contains('is-collapsed')) {
+    content.classList.remove('is-collapsed');
+    toggle.classList.remove('collapsed');
+    toggle.innerHTML = '▾';
+  }
+}
+
+function revealNewElement(element) {
+  if (!element) return;
+
+  // abre su propia card si estuviera colapsada
+  const ownCard = element.closest('[data-collapsible-card]');
+  if (ownCard) expandCollapsibleCard(ownCard);
+
+  // abre también el device padre si existiera
+  const parentDevice = element.closest('.device-entry');
+  if (parentDevice) expandCollapsibleCard(parentDevice);
+
+  requestAnimationFrame(() => {
+    element.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center'
+    });
+
+    element.classList.add('just-added');
+    setTimeout(() => {
+      element.classList.remove('just-added');
+    }, 1600);
+  });
+}
+
+function updateCounters() {
+  const devicesCount = document.querySelectorAll('.device-entry').length;
+  const linksCount = document.querySelectorAll('.link-entry').length;
+
+  const devicesBadge = document.getElementById('count-devices');
+  const linksBadge = document.getElementById('count-links');
+
+  if (devicesBadge) devicesBadge.textContent = devicesCount;
+  if (linksBadge) linksBadge.textContent = linksCount;
+
+  document.querySelectorAll('.device-entry').forEach(deviceEl => {
+    const chemCount = deviceEl.querySelectorAll('.chemical-entry').length;
+    const cellCount = deviceEl.querySelectorAll('.cell-entry').length;
+    const reactionCount = deviceEl.querySelectorAll('.reaction-entry').length;
+
+    const chemBadge = deviceEl.querySelector('.device-chemicals-count');
+    const cellBadge = deviceEl.querySelector('.device-cells-count');
+    const reactionBadge = deviceEl.querySelector('.device-reactions-count');
+
+    if (chemBadge) chemBadge.textContent = chemCount;
+    if (cellBadge) cellBadge.textContent = cellCount;
+    if (reactionBadge) reactionBadge.textContent = reactionCount;
+  });
 }
 
 function normalizeText(s) {
@@ -534,7 +608,7 @@ function refreshAllSelects() {
   refreshReactionSelects();
   refreshLinkSelects();
   forceReactionCleanup();
-  updateCardSummaries();
+  updateCounters();
 }
 
 function ejecutarSimulacion() {
