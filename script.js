@@ -274,6 +274,75 @@ function addItemInDevice(buttonEl, type) {
   refreshAllSelects();
 }
 
+function getDeviceSummary(deviceEl) {
+  const name = normalizeText(deviceEl.querySelector('.device-name')?.value) || 'Dispositivo';
+  const chemicals = deviceEl.querySelectorAll('.chemical-entry').length;
+  const cells = deviceEl.querySelectorAll('.cell-entry').length;
+  const reactions = deviceEl.querySelectorAll('.reaction-entry').length;
+  return `${name} · ${chemicals} químicos · ${cells} células · ${reactions} reacciones`;
+}
+
+function getChemicalSummary(chemicalEl) {
+  return normalizeText(chemicalEl.querySelector('.chem-name')?.value) || 'Químico';
+}
+
+function getCellSummary(cellEl) {
+  return normalizeText(cellEl.querySelector('.cell-name')?.value) || 'Célula';
+}
+
+function getReactionSummary(reactionEl) {
+  return normalizeText(reactionEl.querySelector('.reaction-type')?.value) || 'Reacción';
+}
+
+function getLinkSummary(linkEl) {
+  const from = linkEl.querySelector('.link-from');
+  const to = linkEl.querySelector('.link-to');
+
+  const fromText = from?.selectedOptions?.[0]?.textContent || 'Origen';
+  const toText = to?.selectedOptions?.[0]?.textContent || 'Destino';
+
+  return `${fromText} → ${toText}`;
+}
+
+function updateCardSummaries() {
+  document.querySelectorAll('.device-entry').forEach(el => {
+    const target = el.querySelector('.card-summary');
+    if (target) target.textContent = getDeviceSummary(el);
+  });
+
+  document.querySelectorAll('.chemical-entry').forEach(el => {
+    const target = el.querySelector('.card-summary');
+    if (target) target.textContent = getChemicalSummary(el);
+  });
+
+  document.querySelectorAll('.cell-entry').forEach(el => {
+    const target = el.querySelector('.card-summary');
+    if (target) target.textContent = getCellSummary(el);
+  });
+
+  document.querySelectorAll('.reaction-entry').forEach(el => {
+    const target = el.querySelector('.card-summary');
+    if (target) target.textContent = getReactionSummary(el);
+  });
+
+  document.querySelectorAll('.link-entry').forEach(el => {
+    const target = el.querySelector('.card-summary');
+    if (target) target.textContent = getLinkSummary(el);
+  });
+}
+
+function makeCardHeader(title, extraClass = '') {
+  return `
+    <div class="d-flex justify-content-between align-items-center mb-3 ${extraClass}">
+      <div>
+        <h6 class="mb-0">${title}</h6>
+        <div class="card-summary text-muted small mt-1"></div>
+      </div>
+      <button type="button" class="collapsible-toggle" onclick="toggleCollapse(this)">▾</button>
+    </div>
+  `;
+}
+
 function normalizeText(s) {
   return (s ?? "").trim();
 }
@@ -465,6 +534,7 @@ function refreshAllSelects() {
   refreshReactionSelects();
   refreshLinkSelects();
   forceReactionCleanup();
+  updateCardSummaries();
 }
 
 function ejecutarSimulacion() {
