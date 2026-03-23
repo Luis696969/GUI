@@ -211,3 +211,10 @@ label {
   border-radius: 20px;
   padding: 28px 20px;
 }
+
+.card-summary {
+  max-width: 520px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
