@@ -1,88 +1,101 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BioSim Pro - Interfaz de Simulación</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BioSim Interface</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
+  <main class="container py-5">
+    <header class="hero card border-0 shadow-sm mb-4">
+      <div class="card-body p-4 p-md-5">
+        <div class="hero-badge">Simulación local</div>
+        <h1 class="display-5 fw-bold mb-2">BioSim <span class="text-info">Interface</span></h1>
+        <p class="text-secondary mb-0">
+          Configura dispositivos, químicos, células y reacciones, genera un JSON compatible y ejecuta la simulación local en Python.
+        </p>
+      </div>
+    </header>
 
-    <div class="container py-5">
-        <header class="text-center mb-5 header-hero">
-            <h1 class="display-4 fw-bold mb-2">
-                BioSim <span class="text-info">Interface</span>
-            </h1>
-            <p class="text-muted mb-0">
-                Configuración de parámetros para simulación de difusión celular.
-            </p>
-        </header>
+    <section class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+          <h2 class="h4 mb-0">Simulación</h2>
+          <span class="section-pill">Configuración global</span>
+        </div>
 
-        <!-- SIMULACIÓN -->
-        <div class="row g-4">
-            <div class="col-12">
-                <div class="card p-4 shadow-sm h-100">
-                    <h5 class="mb-3">Simulación</h5>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label>T (Segundos)</label>
-                            <input type="number" id="sim_T" class="form-control" value="7200">
-                        </div>
-                        <div class="col-md-6">
-                            <label>dt</label>
-                            <input type="number" id="sim_dt" class="form-control" value="0.01" step="0.001">
-                        </div>
-                        <div class="col-12 text-muted small mt-3">
-                            Los tiempos de ploteo se calculan automáticamente.
-                        </div>
-                    </div>
-                </div>
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label for="sim_T" class="form-label">T (segundos)</label>
+            <input type="number" id="sim_T" class="form-control" value="7200" min="1" step="1">
+          </div>
+          <div class="col-md-6">
+            <label for="sim_dt" class="form-label">dt</label>
+            <input type="number" id="sim_dt" class="form-control" value="0.01" min="0.000001" step="0.001">
+          </div>
+          <div class="col-12">
+            <div class="info-banner">
+              En esta primera versión, los tiempos de ploteo se calculan automáticamente y las interfaces entre dispositivos quedan desactivadas.
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="mb-4">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h4 mb-0">Dispositivos</h2>
+          <span id="count-devices" class="count-badge">0</span>
+        </div>
+        <button type="button" class="btn btn-primary" id="add-device-btn">+ Añadir dispositivo</button>
+      </div>
+      <div id="devices-empty" class="empty-state">
+        Todavía no has añadido ningún dispositivo.
+      </div>
+      <div id="container-devices" class="device-list"></div>
+    </section>
+
+    <section class="card shadow-sm border-0 mb-4">
+      <div class="card-body p-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+          <div>
+            <h2 class="h4 mb-1">Ejecución</h2>
+            <p class="text-secondary mb-0 small">El frontend enviará un JSON compatible al backend local en <code>/run-simulation</code>.</p>
+          </div>
+          <button type="button" id="run-btn" class="btn btn-success btn-lg">Generar JSON e iniciar simulación</button>
         </div>
 
-        <!-- DISPOSITIVOS -->
-        <div class="mt-5">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
-                <h3 class="d-flex align-items-center gap-2 mb-0">
-                    <span>Dispositivos</span>
-                    <span id="count-devices" class="count-badge">0</span>
-                </h3>
-                <button class="btn btn-primary" onclick="addItem('devices')">
-                    + Añadir Dispositivo
-                </button>
+        <div id="status-box" class="status-box status-idle">Listo para ejecutar.</div>
+        <div id="server-box" class="server-box d-none"></div>
+      </div>
+    </section>
+
+    <section class="row g-4">
+      <div class="col-lg-7">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-3">Vista previa del JSON</h2>
+            <pre id="json-preview" class="json-preview">Aún no se ha generado ningún JSON.</pre>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-5">
+        <div class="card shadow-sm border-0 h-100">
+          <div class="card-body p-4">
+            <h2 class="h5 mb-3">Resultados</h2>
+            <div id="result-summary" class="result-summary text-secondary">
+              Cuando ejecutes la simulación, aquí verás un resumen, enlaces a imágenes y la respuesta del backend.
             </div>
-            <div id="container-devices" class="dynamic-container"></div>
+            <div id="plots" class="plots mt-3"></div>
+          </div>
         </div>
+      </div>
+    </section>
+  </main>
 
-        <!-- CONEXIONES -->
-        <div class="mt-5">
-            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-3">
-                <h3 class="d-flex align-items-center gap-2 mb-0">
-                    <span>Conexiones entre dispositivos</span>
-                    <span id="count-links" class="count-badge">0</span>
-                </h3>
-                <button class="btn btn-primary" onclick="addItem('links')">
-                    + Añadir Conexión
-                </button>
-            </div>
-            <div id="container-links" class="dynamic-container"></div>
-        </div>
-
-        <!-- BOTÓN PRINCIPAL -->
-        <div class="d-grid mt-5">
-            <button class="btn btn-success btn-lg shadow" onclick="ejecutarSimulacion()">
-                Generar JSON e Iniciar Simulación
-            </button>
-        </div>
-
-        <!-- PREVIEW JSON -->
-        <div class="mt-5">
-            <label class="form-label fw-bold">Vista previa del JSON de salida:</label>
-            <pre id="json-preview" class="p-3 rounded shadow-lg"></pre>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
