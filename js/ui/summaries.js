@@ -1,59 +1,26 @@
-function normalizeText(value) {
-  return (value || '').trim();
-}
+import { normalizeText } from '../utils/parse.js';
 
-export function getDeviceSummary(deviceEl) {
-  const name = normalizeText(deviceEl.querySelector('.device-name')?.value) || 'Device';
-  const chemicals = deviceEl.querySelectorAll('.chemical-entry').length;
-  const cells = deviceEl.querySelectorAll('.cell-entry').length;
-  const entries = deviceEl.querySelectorAll('.entry-entry').length;
-  const reactions = deviceEl.querySelectorAll('.reaction-entry').length;
-
-  return `${name} · ${chemicals} chemicals · ${cells} cells · ${entries} entries · ${reactions} reactions`;
-}
-
-export function getChemicalSummary(chemicalEl) {
-  return normalizeText(chemicalEl.querySelector('.chem-name')?.value) || 'Chemical';
-}
-
-export function getCellSummary(cellEl) {
-  return normalizeText(cellEl.querySelector('.cell-name')?.value) || 'Cell population';
-}
-
-export function getEntrySummary(entryEl) {
-  const chemical = entryEl.querySelector('.entry-chemical')?.value || 'chemical';
-  const x = entryEl.querySelector('.entry-x')?.value || 'x';
-  const y = entryEl.querySelector('.entry-y')?.value || 'y';
-
-  return `${chemical} at (${x}, ${y})`;
-}
-
-export function getReactionSummary(reactionEl) {
-  return normalizeText(reactionEl.querySelector('.reaction-type')?.value) || 'Reaction';
-}
-
-export function getInterfaceSummary(interfaceEl) {
-  const from = interfaceEl.querySelector('.iface-device1');
-  const to = interfaceEl.querySelector('.iface-device2');
-
-  const fromText = from?.selectedOptions?.[0]?.textContent || 'Origin';
-  const toText = to?.selectedOptions?.[0]?.textContent || 'Destination';
-
-  return `${fromText} → ${toText}`;
-}
-
-function updateSummary(selector, builder, root = document) {
-  root.querySelectorAll(selector).forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = builder(el);
-  });
-}
+const summaryMap = {
+  '.device-entry': (el) => {
+    const name = normalizeText(el.querySelector('.device-name')?.value) || 'Device';
+    return `${name} · ${el.querySelectorAll('.chemical-entry').length} chemicals · ${el.querySelectorAll('.cell-entry').length} cells · ${el.querySelectorAll('.entry-entry').length} entries · ${el.querySelectorAll('.reaction-entry').length} reactions`;
+  },
+  '.chemical-entry': (el) => normalizeText(el.querySelector('.chem-name')?.value) || 'Chemical',
+  '.cell-entry': (el) => normalizeText(el.querySelector('.cell-name')?.value) || 'Cell population',
+  '.entry-entry': (el) => `${el.querySelector('.entry-chemical')?.value || 'chemical'} at (${el.querySelector('.entry-x')?.value || 'x'}, ${el.querySelector('.entry-y')?.value || 'y'})`,
+  '.reaction-entry': (el) => normalizeText(el.querySelector('.reaction-type')?.value) || 'Reaction',
+  '.interface-entry': (el) => {
+    const from = el.querySelector('.iface-device1')?.selectedOptions?.[0]?.textContent || 'Origin';
+    const to = el.querySelector('.iface-device2')?.selectedOptions?.[0]?.textContent || 'Destination';
+    return `${from} → ${to}`;
+  }
+};
 
 export function updateCardSummaries(root = document) {
-  updateSummary('.device-entry', getDeviceSummary, root);
-  updateSummary('.chemical-entry', getChemicalSummary, root);
-  updateSummary('.cell-entry', getCellSummary, root);
-  updateSummary('.entry-entry', getEntrySummary, root);
-  updateSummary('.reaction-entry', getReactionSummary, root);
-  updateSummary('.interface-entry', getInterfaceSummary, root);
+  Object.entries(summaryMap).forEach(([selector, fn]) => {
+    root.querySelectorAll(selector).forEach((el) => {
+      const target = el.querySelector('.card-summary');
+      if (target) target.textContent = fn(el);
+    });
+  });
 }

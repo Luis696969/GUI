@@ -1,15 +1,11 @@
-export function renderWarnings(warningsBox, warnings, escapeHtml) {
+import { escapeHtml } from '../utils/html.js';
+
+export function renderWarnings(dom, warnings) {
   if (!warnings.length) {
-    warningsBox.classList.add('d-none');
-    warningsBox.innerHTML = '';
+    dom.warningsBox.classList.add('d-none');
+    dom.warningsBox.innerHTML = '';
     return;
   }
-
-  warningsBox.classList.remove('d-none');
-  warningsBox.innerHTML = `
-    <strong>Warnings</strong>
-    <ul class="mb-0">
-      ${warnings.map(warning => `<li>${escapeHtml(warning)}</li>`).join('')}
-    </ul>
-  `;
+  dom.warningsBox.classList.remove('d-none');
+  dom.warningsBox.innerHTML = `<strong>Warnings</strong><ul class="mb-0">${warnings.map((w) => `<li>${escapeHtml(w)}</li>`).join('')}</ul>`;
 }
