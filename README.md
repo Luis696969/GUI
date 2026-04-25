@@ -113,38 +113,36 @@ The generated payload is expected to follow this high-level shape:
 
 ```json
 {
-  "config": {
-    "simulation": {
-      "T": 650,
-      "dt": 0.1,
-      "run_solver": true,
-      "times_to_plot": [0, 15, 30, 59, 650]
-    },
-    "devices": [
-      {
-        "id": "device_1",
-        "domain": { "Lx": 0.3, "Ly": 9.75, "Nx": 20, "Ny": 500 },
-        "chemicals": [],
-        "cells": [],
-        "entries": []
+  "simulation": {
+    "T": 650,
+    "dt": 0.1,
+    "run_solver": true,
+    "times_to_plot": [0, 15, 30, 59, 650]
+  },
+  "devices": [
+    {
+      "id": "dev_1",
+      "domain": { "Lx": 0.3, "Ly": 9.75, "Nx": 20, "Ny": 500 },
+      "chemicals": [],
+      "cells": [],
+      "entries": []
+    }
+  ],
+  "interfaces": [
+    {
+      "device1": "dev_1",
+      "device2": "dev_2",
+      "locs": {
+        "dev_1": { "start": [0, 0], "stop": [0, 1] },
+        "dev_2": { "start": [1, 0], "stop": [1, 1] }
+      },
+      "D_interface": {
+        "oxygen": 1e-5
       }
-    ],
-    "reactions": [],
-    "interfaces": [
-      {
-        "device1": "device_1",
-        "device2": "device_2",
-        "locs": {
-          "device_1": { "start": [0, 0], "stop": [0, 1] },
-          "device_2": { "start": [1, 0], "stop": [1, 1] }
-        },
-        "D_interface": {
-          "oxygen": 1e-5
-        }
-      }
-    ],
-    "washouts": []
-  }
+    }
+  ],
+  "reactions": [],
+  "washouts": []
 }
 ```
 
