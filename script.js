@@ -69,20 +69,6 @@ function renderWarnings(warnings) {
   `;
 }
 
-function makeCardHeader(title, subtitle = '', extraClass = '') {
-  return `
-    <div class="card-header-row">
-      <div class="card-title-wrap">
-        <button type="button" class="collapsible-toggle" aria-label="Collapse or expand" onclick="toggleCollapse(this)">▾</button>
-        <div class="min-w-0">
-          <h3 class="card-title ${extraClass}">${title}</h3>
-          <div class="card-summary">${subtitle}</div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 function toggleCollapse(buttonEl) {
   const card = buttonEl.closest('[data-collapsible-card]');
   if (!card) return;
@@ -149,310 +135,6 @@ function removeCard(buttonEl) {
   updateCardSummaries();
 }
 
-function deviceCardTemplate(deviceId, index) {
-  return `
-    <div class="dynamic-card device-entry" data-device-id="${deviceId}" data-collapsible-card>
-      ${makeCardHeader(`Device ${index}`, 'Domain, chemicals, cells, entries and reactions.')}
-      <div class="collapsible-content">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Device name</label>
-            <input type="text" class="form-control device-name" value="Device ${index}" placeholder="Device ${index}">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Lx (mm)</label>
-            <input type="number" class="form-control dev_Lx" min="0.000001" step="any" value="0.3">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Ly (mm)</label>
-            <input type="number" class="form-control dev_Ly" min="0.000001" step="any" value="9.75">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Nx</label>
-            <input type="number" class="form-control dev_Nx" min="3" step="1" value="20">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Ny</label>
-            <input type="number" class="form-control dev_Ny" min="3" step="1" value="500">
-          </div>
-
-          <div class="col-12 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-card-btn">Remove device</button>
-          </div>
-        </div>
-
-        <section class="nested-section">
-          <div class="nested-section-header">
-            <h4 class="nested-section-title">Chemicals</h4>
-            <button type="button" class="btn btn-outline-primary btn-sm add-chemical-btn">+ Add chemical</button>
-          </div>
-          <div class="items-container device-chemicals"></div>
-        </section>
-
-        <section class="nested-section">
-          <div class="nested-section-header">
-            <h4 class="nested-section-title">Cells</h4>
-            <button type="button" class="btn btn-outline-primary btn-sm add-cell-btn">+ Add cell</button>
-          </div>
-          <div class="items-container device-cells"></div>
-        </section>
-
-        <section class="nested-section">
-          <div class="nested-section-header">
-            <h4 class="nested-section-title">Entries / inflows</h4>
-            <button type="button" class="btn btn-outline-primary btn-sm add-entry-btn">+ Add entry</button>
-          </div>
-          <div class="items-container device-entries"></div>
-        </section>
-
-        <section class="nested-section">
-          <div class="nested-section-header">
-            <h4 class="nested-section-title">Reactions</h4>
-            <button type="button" class="btn btn-outline-primary btn-sm add-reaction-btn">+ Add reaction</button>
-          </div>
-          <div class="items-container device-reactions"></div>
-        </section>
-      </div>
-    </div>
-  `;
-}
-
-function chemicalCardTemplate() {
-  return `
-    <div class="dynamic-card chemical-entry" data-collapsible-card>
-      ${makeCardHeader('Chemical', 'Chemical species, maximum concentration, diffusion and initial profile.')}
-      <div class="collapsible-content">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control chem-name" placeholder="Example: Glucose">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Max concentration</label>
-            <input type="number" class="form-control chem-max-concentration" min="0" step="any" value="1">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Diffusion coefficient</label>
-            <input type="number" class="form-control chem-coef" min="0" step="any" value="0.01">
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Initial profile</label>
-            <select class="form-select chem-profile">
-              ${buildOptions(ALLOWED_INITIAL_PROFILES, 'uniform')}
-            </select>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-card-btn">Remove</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function cellCardTemplate() {
-  return `
-    <div class="dynamic-card cell-entry" data-collapsible-card>
-      ${makeCardHeader('Cell population', 'Concentration, diffusion and initial geometry.')}
-      <div class="collapsible-content">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Name</label>
-            <input type="text" class="form-control cell-name" placeholder="Example: Cancer cells">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Concentration</label>
-            <input type="number" class="form-control cell-conc" min="0" step="any" value="1">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Diffusion coefficient</label>
-            <input type="number" class="form-control cell-coef" min="0" step="any" value="0.0">
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Shape</label>
-            <select class="form-select cell-shape">
-              ${buildOptions(ALLOWED_CELL_SHAPES, 'ellipse')}
-            </select>
-          </div>
-
-          <div class="col-12 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-card-btn">Remove</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function entryCardTemplate() {
-  return `
-    <div class="dynamic-card entry-entry" data-collapsible-card>
-      ${makeCardHeader('Entry / inflow', 'Position, chemical and concentration.')}
-      <div class="collapsible-content">
-        <div class="row g-3">
-          <div class="col-md-3">
-            <label class="form-label">x position</label>
-            <input type="number" class="form-control entry-x" min="0" step="any" value="0">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">y position</label>
-            <input type="number" class="form-control entry-y" min="0" step="any" value="0">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Chemical</label>
-            <select class="form-select entry-chemical"></select>
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Concentration</label>
-            <input type="number" class="form-control entry-concentration" min="0" step="any" value="1">
-          </div>
-
-          <div class="col-12 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-card-btn">Remove entry</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function reactionCardTemplate() {
-  return `
-    <div class="dynamic-card reaction-entry" data-collapsible-card>
-      ${makeCardHeader('Reaction', 'Global reaction definition checked against each device.')}
-      <div class="collapsible-content">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Type</label>
-            <select class="form-select reaction-type">
-              ${buildOptions(ALLOWED_REACTION_TYPES, 'cell_consumption_waste')}
-            </select>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Substrates, comma-separated</label>
-            <input type="text" class="form-control reaction-substrates" placeholder="Example: Glucose">
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Products, comma-separated</label>
-            <input type="text" class="form-control reaction-products" placeholder="Example: Lactate">
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Biologicals, comma-separated</label>
-            <input type="text" class="form-control reaction-biologicals" placeholder="Example: Cancer cells">
-          </div>
-
-          <div class="col-12">
-            <label class="form-label">Coefficients, comma-separated, optional</label>
-            <input type="text" class="form-control reaction-coefficients" placeholder="Example: 0.1, 2">
-          </div>
-
-          <div class="col-12 d-flex justify-content-end">
-            <button type="button" class="btn btn-outline-danger btn-sm remove-card-btn">Remove reaction</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
-function interfaceCardTemplate(interfaceId, index) {
-  return `
-    <div class="dynamic-card interface-entry" data-interface-id="${interfaceId}" data-collapsible-card>
-      ${makeCardHeader(`Interface ${index}`, 'Connects two devices through boundary segments.')}
-      <div class="collapsible-content">
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="form-label">Device 1</label>
-            <select class="form-select iface-device1"></select>
-          </div>
-
-          <div class="col-md-6">
-            <label class="form-label">Device 2</label>
-            <select class="form-select iface-device2"></select>
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Device 1 side</label>
-            <select class="form-select iface-side1">
-              ${buildOptions(ALLOWED_INTERFACE_SIDES, 'right')}
-            </select>
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Segment 1 start</label>
-            <input type="number" class="form-control iface-start1" step="any" value="0">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Segment 1 end</label>
-            <input type="number" class="form-control iface-stop1" step="any" value="1">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Boundary length 1</label>
-            <input type="text" class="form-control iface-limit1" disabled value="-">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Device 2 side</label>
-            <select class="form-select iface-side2">
-              ${buildOptions(ALLOWED_INTERFACE_SIDES, 'left')}
-            </select>
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Segment 2 start</label>
-            <input type="number" class="form-control iface-start2" step="any" value="0">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Segment 2 end</label>
-            <input type="number" class="form-control iface-stop2" step="any" value="1">
-          </div>
-
-          <div class="col-md-3">
-            <label class="form-label">Boundary length 2</label>
-            <input type="text" class="form-control iface-limit2" disabled value="-">
-          </div>
-        </div>
-
-        <section class="nested-section">
-          <div class="nested-section-header">
-            <h4 class="nested-section-title">Interfacial diffusion by chemical</h4>
-          </div>
-
-          <div class="iface-chemicals-note text-muted small mb-2">
-            Select two devices to display shared chemicals.
-          </div>
-
-          <div class="iface-diffusion-container row g-3"></div>
-        </section>
-
-        <div class="d-flex justify-content-end mt-3">
-          <button type="button" class="btn btn-outline-danger btn-sm remove-card-btn">Remove interface</button>
-        </div>
-      </div>
-    </div>
-  `;
-}
-
 function addDevice() {
   deviceCounter += 1;
   const deviceId = `dev_${deviceCounter}`;
@@ -472,7 +154,10 @@ function addInterface() {
   interfaceCounter += 1;
   const interfaceId = `iface_${interfaceCounter}`;
 
-  dom.interfacesContainer.insertAdjacentHTML('beforeend', interfaceCardTemplate(interfaceId, interfaceCounter));
+  dom.interfacesContainer.insertAdjacentHTML('beforeend', interfaceCardTemplate(interfaceId, interfaceCounter, {
+    buildOptions,
+    allowedInterfaceSides: ALLOWED_INTERFACE_SIDES
+  }));
 
   const newElement = dom.interfacesContainer.lastElementChild;
 
@@ -493,16 +178,25 @@ function addNestedCard(buttonEl, type) {
 
   if (type === 'chemical') {
     container = deviceCard.querySelector('.device-chemicals');
-    html = chemicalCardTemplate();
+    html = chemicalCardTemplate({
+      buildOptions,
+      allowedInitialProfiles: ALLOWED_INITIAL_PROFILES
+    });
   } else if (type === 'cell') {
     container = deviceCard.querySelector('.device-cells');
-    html = cellCardTemplate();
+    html = cellCardTemplate({
+      buildOptions,
+      allowedCellShapes: ALLOWED_CELL_SHAPES
+    });
   } else if (type === 'entry') {
     container = deviceCard.querySelector('.device-entries');
     html = entryCardTemplate();
   } else if (type === 'reaction') {
     container = deviceCard.querySelector('.device-reactions');
-    html = reactionCardTemplate();
+    html = reactionCardTemplate({
+      buildOptions,
+      allowedReactionTypes: ALLOWED_REACTION_TYPES
+    });
   }
 
   if (container && html) {
