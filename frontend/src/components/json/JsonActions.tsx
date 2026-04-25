@@ -5,6 +5,7 @@ import type { AppState, ConfigAction } from '../../hooks/useConfigReducer';
 type JsonActionsProps = {
   state: AppState;
   dispatch: Dispatch<ConfigAction>;
+  serializedConfig: string;
 };
 
 const EMPTY_STATE: AppState = {
@@ -13,16 +14,53 @@ const EMPTY_STATE: AppState = {
   interfaces: []
 };
 
-export function JsonActions({ state, dispatch }: JsonActionsProps) {
+function fallbackCopyText(text: string): boolean {
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', 'true');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  textarea.style.pointerEvents = 'none';
+
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  let didCopy = false;
+
+  try {
+    didCopy = document.execCommand('copy');
+  } finally {
+    document.body.removeChild(textarea);
+  }
+
+  return didCopy;
+}
+
+export function JsonActions({ state, dispatch, serializedConfig }: JsonActionsProps) {
   const [status, setStatus] = useState<string>('');
 
   const copyJson = async () => {
     try {
-      await navigator.clipboard.writeText(JSON.stringify(state, null, 2));
+      await navigator.clipboard.writeText(serializedConfig);
       setStatus('JSON copied to clipboard');
+      return;
     } catch {
-      setStatus('Clipboard unavailable in this environment');
+      const didCopy = fallbackCopyText(serializedConfig);
+      setStatus(didCopy ? 'JSON copied to clipboard' : 'Clipboard unavailable in this environment');
     }
+  };
+
+  const downloadJson = () => {
+    const blob = new Blob([serializedConfig], { type: 'application/json' });
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = 'biosim-config.json';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(objectUrl);
+    setStatus('JSON downloaded as biosim-config.json');
   };
 
   const resetState = () => {
@@ -39,6 +77,7 @@ export function JsonActions({ state, dispatch }: JsonActionsProps) {
       <h2>JSON Actions</h2>
       <div className="button-row">
         <button onClick={copyJson}>Copy JSON</button>
+        <button onClick={downloadJson}>Download JSON</button>
         <button onClick={resetState}>Reset state</button>
       </div>
       {status ? <p className="muted">{status}</p> : null}
