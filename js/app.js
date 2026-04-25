@@ -1,40 +1,83 @@
-import {
-  ALLOWED_INITIAL_PROFILES,
-  ALLOWED_CELL_SHAPES,
-  ALLOWED_REACTION_TYPES,
-  ALLOWED_INTERFACE_SIDES,
-  API_URL
-} from './js/config/constants.js';
+const API_URL = 'http://127.0.0.1:8000/run-simulation';
 
 let deviceCounter = 0;
 let interfaceCounter = 0;
 
-const dom = {
-  devicesContainer: byId('container-devices'),
-  devicesEmpty: byId('devices-empty'),
-  countDevices: byId('count-devices'),
+const ALLOWED_INITIAL_PROFILES = ['uniform', 'zero', 'chamber'];
+const ALLOWED_CELL_SHAPES = ['ellipse', 'circle', 'rectangle', 'limacon', 'ying', 'yang'];
+const ALLOWED_REACTION_TYPES = ['cell_consumption_waste', 'sink', 'cells_killing_cells'];
+const ALLOWED_INTERFACE_SIDES = ['left', 'right', 'top', 'bottom'];
 
-  interfacesContainer: byId('container-interfaces'),
-  interfacesEmpty: byId('interfaces-empty'),
-  countInterfaces: byId('count-interfaces'),
+let dom;
 
-  runBtn: byId('run-btn'),
-  previewBtn: byId('preview-btn'),
-  addDeviceBtn: byId('add-device-btn'),
-  addInterfaceBtn: byId('add-interface-btn'),
+export function bindDom(domRefs) {
+  dom = domRefs;
+}
 
-  simT: byId('sim_T'),
-  simDt: byId('sim_dt'),
-  simRunSolver: byId('sim_run_solver'),
-  simTimesToPlot: byId('sim_times_to_plot'),
+function normalizeText(value) {
+  return (value || '').trim();
+}
 
-  jsonPreview: byId('json-preview'),
-  statusBox: byId('status-box'),
-  warningsBox: byId('warnings-box'),
-  serverBox: byId('server-box'),
-  resultSummary: byId('result-summary'),
-  plots: byId('plots')
-};
+function parseCsv(value) {
+  return normalizeText(value)
+    .split(',')
+    .map(item => item.trim())
+    .filter(Boolean);
+}
+
+function parseNumberCsv(value, label) {
+  const raw = parseCsv(value);
+  const values = raw.map(item => Number(item));
+
+  values.forEach((num, index) => {
+    if (!Number.isFinite(num)) {
+      throw new Error(`${label}: value "${raw[index]}" is not a valid number.`);
+    }
+  });
+
+  return values;
+}
+
+function readNumber(value, label, { integer = false, min = null, max = null, strictlyPositive = false } = {}) {
+  const num = integer ? parseInt(value, 10) : parseFloat(value);
+
+  if (!Number.isFinite(num)) {
+    throw new Error(`${label} is not valid.`);
+  }
+
+  if (integer && !Number.isInteger(num)) {
+    throw new Error(`${label} must be an integer.`);
+  }
+
+  if (min !== null && num < min) {
+    throw new Error(`${label} must be >= ${min}.`);
+  }
+
+  if (max !== null && num > max) {
+    throw new Error(`${label} must be <= ${max}.`);
+  }
+
+  if (strictlyPositive && num <= 0) {
+    throw new Error(`${label} must be > 0.`);
+  }
+
+  return num;
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#039;');
+}
+
+function buildOptions(values, selected = '') {
+  return values
+    .map(value => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`)
+    .join('');
+}
 
 function buildTimesToPlot(T, dt) {
   const candidates = [0, 15, 30, 59, T];
@@ -73,7 +116,7 @@ function makeCardHeader(title, subtitle = '', extraClass = '') {
   return `
     <div class="card-header-row">
       <div class="card-title-wrap">
-        <button type="button" class="collapsible-toggle" aria-label="Collapse or expand" onclick="toggleCollapse(this)">▾</button>
+        <button type="button" class="collapsible-toggle" aria-label="Collapse or expand" >▾</button>
         <div class="min-w-0">
           <h3 class="card-title ${extraClass}">${title}</h3>
           <div class="card-summary">${subtitle}</div>
@@ -94,8 +137,6 @@ function toggleCollapse(buttonEl) {
   buttonEl.classList.toggle('collapsed', collapsed);
   buttonEl.innerHTML = collapsed ? '▸' : '▾';
 }
-
-window.toggleCollapse = toggleCollapse;
 
 function expandCollapsibleCard(card) {
   if (!card) return;
@@ -558,32 +599,32 @@ function getInterfaceSummary(interfaceEl) {
 }
 
 function updateCardSummaries() {
-  qsa('.device-entry').forEach(el => {
+  document.querySelectorAll('.device-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getDeviceSummary(el);
   });
 
-  qsa('.chemical-entry').forEach(el => {
+  document.querySelectorAll('.chemical-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getChemicalSummary(el);
   });
 
-  qsa('.cell-entry').forEach(el => {
+  document.querySelectorAll('.cell-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getCellSummary(el);
   });
 
-  qsa('.entry-entry').forEach(el => {
+  document.querySelectorAll('.entry-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getEntrySummary(el);
   });
 
-  qsa('.reaction-entry').forEach(el => {
+  document.querySelectorAll('.reaction-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getReactionSummary(el);
   });
 
-  qsa('.interface-entry').forEach(el => {
+  document.querySelectorAll('.interface-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getInterfaceSummary(el);
   });
@@ -953,10 +994,11 @@ function refreshInterfaceDeviceOptions(interfaceEl, summaries) {
   const old1 = select1.value;
   const old2 = select2.value;
 
-  const options = buildSelectOptions(
-    summaries.map(d => ({ value: d.id, label: `${d.name} (${d.id})` })),
-    { emptyLabel: 'Select device' }
-  );
+  const options = ['<option value="">Select device</option>']
+    .concat(
+      summaries.map(d => `<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} (${escapeHtml(d.id)})</option>`)
+    )
+    .join('');
 
   select1.innerHTML = options;
   select2.innerHTML = options;
@@ -999,7 +1041,7 @@ function refreshEntryChemicalOptionsForDevice(deviceEl) {
 }
 
 function refreshAllEntryChemicalOptions() {
-  qsa('.device-entry').forEach(refreshEntryChemicalOptionsForDevice);
+  document.querySelectorAll('.device-entry').forEach(refreshEntryChemicalOptionsForDevice);
 }
 
 function collectSimulation(warnings) {
@@ -1364,97 +1406,48 @@ function renderBackendResults(payload) {
   `;
 }
 
-document.addEventListener('click', event => {
-  const addDeviceBtn = getDelegatedTarget(event, '#add-device-btn');
-  if (addDeviceBtn) {
-    addDevice();
+export async function copyPreviewJson() {
+  const text = (dom?.jsonPreview?.textContent || '').trim();
+
+  if (!text || text === 'No JSON has been generated yet.' || text === 'JSON generation failed.') {
+    throw new Error('Generate a JSON preview before copying.');
   }
 
-  const addInterfaceBtn = getDelegatedTarget(event, '#add-interface-btn');
-  if (addInterfaceBtn) {
-    addInterface();
+  if (!navigator.clipboard?.writeText) {
+    throw new Error('Clipboard API is not available in this browser.');
   }
 
-  const removeBtn = getDelegatedTarget(event, '.remove-card-btn');
-  if (removeBtn) {
-    removeCard(removeBtn);
+  await navigator.clipboard.writeText(text);
+}
+
+export function downloadPreviewJson(filename = 'biosim-config.json') {
+  const text = (dom?.jsonPreview?.textContent || '').trim();
+
+  if (!text || text === 'No JSON has been generated yet.' || text === 'JSON generation failed.') {
+    throw new Error('Generate a JSON preview before downloading.');
   }
 
-  const addChemicalBtn = getDelegatedTarget(event, '.add-chemical-btn');
-  if (addChemicalBtn) {
-    addNestedCard(addChemicalBtn, 'chemical');
-  }
+  const blob = new Blob([text], { type: 'application/json;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
 
-  const addCellBtn = getDelegatedTarget(event, '.add-cell-btn');
-  if (addCellBtn) {
-    addNestedCard(addCellBtn, 'cell');
-  }
+  link.href = url;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
 
-  const addEntryBtn = getDelegatedTarget(event, '.add-entry-btn');
-  if (addEntryBtn) {
-    addNestedCard(addEntryBtn, 'entry');
-  }
-
-  const addReactionBtn = getDelegatedTarget(event, '.add-reaction-btn');
-  if (addReactionBtn) {
-    addNestedCard(addReactionBtn, 'reaction');
-  }
-});
-
-document.addEventListener('input', event => {
-  if (
-    event.target.matches('.device-name') ||
-    event.target.matches('.chem-name') ||
-    event.target.matches('.cell-name') ||
-    event.target.matches('.entry-x') ||
-    event.target.matches('.entry-y') ||
-    event.target.matches('.reaction-type')
-  ) {
-    updateCardSummaries();
-  }
-
-  if (
-    event.target.matches('.chem-name') ||
-    event.target.matches('.dev_Lx') ||
-    event.target.matches('.dev_Ly') ||
-    event.target.matches('.dev_Nx') ||
-    event.target.matches('.dev_Ny')
-  ) {
-    refreshAllInterfaceCards();
-    refreshAllEntryChemicalOptions();
-  }
-});
-
-document.addEventListener('change', event => {
-  if (
-    event.target.matches('.iface-device1') ||
-    event.target.matches('.iface-device2') ||
-    event.target.matches('.iface-side1') ||
-    event.target.matches('.iface-side2')
-  ) {
-    refreshAllInterfaceCards();
-    updateCardSummaries();
-  }
-
-  if (
-    event.target.matches('.entry-chemical') ||
-    event.target.matches('.reaction-type') ||
-    event.target.matches('.chem-profile') ||
-    event.target.matches('.cell-shape')
-  ) {
-    updateCardSummaries();
-  }
-});
-
-dom.runBtn.addEventListener('click', runSimulation);
-dom.previewBtn.addEventListener('click', () => {
-  try {
-    previewConfig();
-  } catch {
-    // Status box already contains the error.
-  }
-});
-
-window.toggleCollapse = toggleCollapse;
-
-addDevice();
+export {
+  addDevice,
+  addInterface,
+  addNestedCard,
+  removeCard,
+  refreshAllEntryChemicalOptions,
+  refreshAllInterfaceCards,
+  runSimulation,
+  toggleCollapse,
+  updateCardSummaries,
+  previewConfig
+};
