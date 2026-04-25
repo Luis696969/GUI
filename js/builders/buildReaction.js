@@ -1,7 +1,7 @@
 import { ALLOWED_REACTION_TYPES } from '../config/constants.js';
 import { parseCsv, parseNumberCsv, normalizeText } from '../utils/parse.js';
 import { assertAllowed } from '../validators/field.js';
-import { validateReactionSignature } from '../validators/crossEntity.js';
+import { validateReactionTypeAndParticipants } from '../validators/validateReaction.js';
 import { compactObject } from './buildUtils.js';
 
 export function reactionFingerprint(reaction) {
@@ -22,7 +22,7 @@ export function buildReaction(reactionEl, deviceName, index) {
     coefficients: coefficients.length > 0 ? coefficients : undefined
   });
 
-  validateReactionSignature(reaction, deviceName, index + 1);
+  validateReactionTypeAndParticipants(reaction, deviceName, index + 1);
   return reaction;
 }
 

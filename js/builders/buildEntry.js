@@ -1,10 +1,12 @@
 import { normalizeText, readNumber } from '../utils/parse.js';
+import { validatePointInDomain } from '../validators/validateField.js';
 import { compactObject } from './buildUtils.js';
 
 export function buildEntry(entryEl, deviceName, domain, chemicalNames, index) {
   const x = readNumber(entryEl.querySelector('.entry-x')?.value, `Entry ${index + 1} x position in ${deviceName}`, { min: 0, max: domain.Lx });
   const y = readNumber(entryEl.querySelector('.entry-y')?.value, `Entry ${index + 1} y position in ${deviceName}`, { min: 0, max: domain.Ly });
   const chemical = normalizeText(entryEl.querySelector('.entry-chemical')?.value);
+  validatePointInDomain(x, y, domain, `Entry ${index + 1} in ${deviceName}`);
 
   if (!chemical) throw new Error(`Entry ${index + 1} in ${deviceName} must select a chemical.`);
   if (!chemicalNames.has(chemical)) throw new Error(`Entry ${index + 1} in ${deviceName} references missing chemical "${chemical}".`);

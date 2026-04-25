@@ -3,7 +3,8 @@ import { buildChemicals } from './buildChemical.js';
 import { buildCells } from './buildCell.js';
 import { buildEntries } from './buildEntry.js';
 import { buildReactions } from './buildReaction.js';
-import { validateReactionSpecies } from '../validators/crossEntity.js';
+import { validateDomainGrid } from '../validators/validateField.js';
+import { validateReactionParticipantsExist } from '../validators/validateReaction.js';
 import { compactObject } from './buildUtils.js';
 
 export function getDeviceSummaries(dom) {
@@ -28,6 +29,7 @@ export function buildDevice(deviceEl, index, warnings) {
     Nx: readNumber(deviceEl.querySelector('.dev_Nx')?.value, `Nx of ${deviceName}`, { integer: true, min: 3 }),
     Ny: readNumber(deviceEl.querySelector('.dev_Ny')?.value, `Ny of ${deviceName}`, { integer: true, min: 3 })
   };
+  validateDomainGrid(domain, deviceName);
 
   const dx = domain.Lx / domain.Nx;
   const dy = domain.Ly / domain.Ny;
@@ -39,7 +41,7 @@ export function buildDevice(deviceEl, index, warnings) {
   const reactions = buildReactions(deviceEl, deviceName);
 
   const device = compactObject({ id, domain, entries, chemicals, cells, reactions });
-  reactions.forEach((reaction) => validateReactionSpecies(reaction, device, deviceName));
+  reactions.forEach((reaction) => validateReactionParticipantsExist(reaction, device, deviceName));
   return device;
 }
 
