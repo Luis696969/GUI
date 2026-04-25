@@ -12,6 +12,7 @@ export function ReactionsPanel({ devices, dispatch }: ReactionsPanelProps) {
   return (
     <section className="editor-panel">
       <h2>Reactions</h2>
+      <p className="section-lead">Edit per-device reaction rules with substrates, products, biological actors, and coefficients.</p>
       <div className="card-grid">
         {devices.map((device) => (
           <article key={device.id} className="editor-card">
