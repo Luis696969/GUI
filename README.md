@@ -36,23 +36,18 @@ js/
 │   ├── buildInterface.js
 │   ├── buildReaction.js
 │   ├── buildSimulation.js
-│   ├── buildUtils.js
-│   ├── cell.js
-│   ├── chemical.js
-│   ├── device.js
-│   ├── entry.js
-│   ├── interface.js
-│   ├── reaction.js
+│   └── buildUtils.js
 ├── config/
 │   └── constants.js
 ├── services/
 │   └── api.js
 ├── templates/
 │   ├── cards.js
-│   ├── shared.js
+│   └── shared.js
 ├── ui/
 │   ├── collapsibles.js
 │   ├── counters.js
+│   ├── interfaceCards.js
 │   ├── jsonPreview.js
 │   ├── results.js
 │   ├── status.js
