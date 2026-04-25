@@ -1,10 +1,18 @@
+import { StatePlayground } from './components/StatePlayground';
+import { useConfigReducer } from './hooks/useConfigReducer';
+
 function App() {
+  const { state, dispatch, selectors } = useConfigReducer();
+
   return (
     <main className="app-shell">
-      <section className="app-card">
-        <h1>Vite + React + TypeScript</h1>
-        <p>Frontend scaffold initialized.</p>
-      </section>
+      <StatePlayground
+        state={state}
+        dispatch={dispatch}
+        sharedChemicals={selectors.sharedChemicalsByInterface}
+        deviceSummaries={selectors.deviceSummaries}
+        rootReactions={selectors.rootReactionProjection}
+      />
     </main>
   );
 }
