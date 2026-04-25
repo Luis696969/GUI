@@ -3,6 +3,7 @@ import { DevicesPanel } from './components/devices/DevicesPanel';
 import { InterfacesPanel } from './components/interfaces/InterfacesPanel';
 import { JsonActions } from './components/json/JsonActions';
 import { JsonPreview } from './components/json/JsonPreview';
+import { ValidationSummary } from './components/json/ValidationSummary';
 import { ReactionsPanel } from './components/reactions/ReactionsPanel';
 import { SimulationPanel } from './components/simulation/SimulationPanel';
 import { buildConfig } from './domain/config/buildConfig';
@@ -12,15 +13,15 @@ import { useConfigReducer } from './hooks/useConfigReducer';
 function App() {
   const { state, dispatch } = useConfigReducer();
 
-  const serializedConfig = useMemo(() => {
+  const { serializedConfig, validationResult } = useMemo(() => {
     const rootConfig = buildConfig(state);
     const validationResult = validateConfig(rootConfig);
 
-    if (!validationResult.success) {
-      return JSON.stringify(rootConfig, null, 2);
-    }
+    const serializedConfig = validationResult.success
+      ? JSON.stringify(validationResult.data, null, 2)
+      : JSON.stringify(rootConfig, null, 2);
 
-    return JSON.stringify(validationResult.data, null, 2);
+    return { serializedConfig, validationResult };
   }, [state]);
 
   return (
@@ -30,6 +31,7 @@ function App() {
       <ReactionsPanel devices={state.devices} dispatch={dispatch} />
       <InterfacesPanel interfaces={state.interfaces} dispatch={dispatch} />
       <JsonActions state={state} dispatch={dispatch} serializedConfig={serializedConfig} />
+      <ValidationSummary validationResult={validationResult} />
       <JsonPreview serializedConfig={serializedConfig} />
     </main>
   );
