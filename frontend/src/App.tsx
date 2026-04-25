@@ -5,6 +5,7 @@ import { JsonActions } from './components/json/JsonActions';
 import { JsonPreview } from './components/json/JsonPreview';
 import { ValidationSummary } from './components/json/ValidationSummary';
 import { ReactionsPanel } from './components/reactions/ReactionsPanel';
+import { SectionNav } from './components/layout/SectionNav';
 import { SimulationPanel } from './components/simulation/SimulationPanel';
 import { buildConfig } from './domain/config/buildConfig';
 import { validateConfig } from './domain/config/schema';
@@ -48,13 +49,27 @@ function App() {
         </div>
       </header>
 
-      <SimulationPanel simulation={state.simulation} dispatch={dispatch} />
-      <DevicesPanel devices={state.devices} dispatch={dispatch} />
-      <ReactionsPanel devices={state.devices} dispatch={dispatch} />
-      <InterfacesPanel interfaces={state.interfaces} dispatch={dispatch} />
+      <SectionNav />
+
+      <div id="simulation" className="editor-anchor">
+        <SimulationPanel simulation={state.simulation} dispatch={dispatch} />
+      </div>
+      <div id="devices" className="editor-anchor">
+        <DevicesPanel devices={state.devices} dispatch={dispatch} />
+      </div>
+      <div id="reactions" className="editor-anchor">
+        <ReactionsPanel devices={state.devices} dispatch={dispatch} />
+      </div>
+      <div id="interfaces" className="editor-anchor">
+        <InterfacesPanel interfaces={state.interfaces} dispatch={dispatch} />
+      </div>
       <JsonActions state={state} dispatch={dispatch} serializedConfig={serializedConfig} />
-      <ValidationSummary validationResult={validationResult} />
-      <JsonPreview serializedConfig={serializedConfig} />
+      <div id="validation" className="editor-anchor">
+        <ValidationSummary validationResult={validationResult} />
+      </div>
+      <div id="json-preview" className="editor-anchor">
+        <JsonPreview serializedConfig={serializedConfig} />
+      </div>
     </main>
   );
 }
