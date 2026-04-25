@@ -67,6 +67,39 @@ describe('buildConfig export structure', () => {
     expect(result).not.toHaveProperty('config');
   });
 
+  it('deduplicates byte-identical reactions into a single root reaction', () => {
+    const identicalReaction = {
+      type: 'cell_consumption_waste' as const,
+      substrates: ['glucose'],
+      products: ['lactate'],
+      biologicals: ['cellA'],
+      coefficients: [1, 1]
+    };
+
+    const result = buildConfig({
+      devices: [
+        {
+          id: 'device1',
+          domain: { Lx: 100, Ly: 80, Nx: 10, Ny: 12 },
+          chemicals: [{ name: 'glucose' }],
+          cells: [{ name: 'cellA' }],
+          entries: [{ position: [10, 10], chemical: 'glucose', concentration: 1 }],
+          reactions: [identicalReaction]
+        },
+        {
+          id: 'device2',
+          domain: { Lx: 90, Ly: 70, Nx: 9, Ny: 11 },
+          chemicals: [{ name: 'glucose' }],
+          cells: [{ name: 'cellA' }],
+          entries: [{ position: [20, 20], chemical: 'glucose', concentration: 2 }],
+          reactions: [identicalReaction]
+        }
+      ]
+    });
+
+    expect(result.reactions).toHaveLength(1);
+  });
+
   it('exports reactions at root and removes nested device reactions', () => {
     const result = makeValidConfigInput();
 
@@ -74,19 +107,44 @@ describe('buildConfig export structure', () => {
     expect(result.devices.every((device) => !('reactions' in device))).toBe(true);
   });
 
-  it('preserves interface locs.device1 and locs.device2', () => {
-    const result = makeValidConfigInput();
+  it('exports interface locs with literal keys device1 and device2 only', () => {
+    const result = buildConfig({
+      interfaces: [
+        {
+          device1: 'device1',
+          device2: 'device2',
+          locs: {
+            device1: { start: [0, 0], stop: [0, 10] },
+            device2: { start: [1, 0], stop: [1, 10] },
+            dynamicDeviceA: { start: [2, 0], stop: [2, 10] },
+            dynamicDeviceB: { start: [3, 0], stop: [3, 10] }
+          } as unknown as Record<string, { start: [number, number]; stop: [number, number] }>
+        } as Parameters<typeof buildConfig>[0]['interfaces'][number]
+      ]
+    });
 
     expect(result.interfaces[0].locs).toEqual({
       device1: { start: [0, 0], stop: [0, 10] },
       device2: { start: [1, 0], stop: [1, 10] }
     });
+    expect(Object.keys(result.interfaces[0].locs).sort()).toEqual(['device1', 'device2']);
   });
 
   it('defaults washouts to an empty array', () => {
     const result = makeValidConfigInput();
 
     expect(result.washouts).toEqual([]);
+  });
+
+  it('keeps primitive JavaScript types for exported key fields', () => {
+    const result = makeValidConfigInput();
+
+    expect(typeof result.simulation.T).toBe('number');
+    expect(typeof result.simulation.dt).toBe('number');
+    expect(typeof result.simulation.run_solver).toBe('boolean');
+    expect(typeof result.simulation.times_to_plot[0]).toBe('number');
+    expect(typeof result.devices[0].id).toBe('string');
+    expect(typeof result.interfaces[0].device1).toBe('string');
   });
 });
 
