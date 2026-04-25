@@ -1,0 +1,113 @@
+.editor-shell {
+  min-height: 100dvh;
+  padding: 1.5rem;
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+}
+
+.editor-panel {
+  background: color-mix(in oklab, var(--surface), black 8%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+}
+
+.editor-panel h2,
+.editor-card h3,
+.editor-card h4,
+.sub-card h5 {
+  margin: 0;
+}
+
+.card-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.editor-card,
+.sub-card {
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  background: color-mix(in oklab, var(--surface), black 3%);
+}
+
+.sub-card {
+  margin-top: 0.75rem;
+}
+
+.card-header,
+.section-title-row,
+.button-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.stack-section {
+  margin-top: 1rem;
+}
+
+.field-grid {
+  margin-top: 0.75rem;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.6rem;
+}
+
+.field-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+}
+
+label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.9rem;
+}
+
+input {
+  width: 100%;
+  border: 1px solid var(--border);
+  background: #0b1222;
+  color: var(--text-primary);
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.55rem;
+}
+
+button {
+  border: 1px solid var(--border);
+  background: #0b1222;
+  color: var(--text-primary);
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.6rem;
+  cursor: pointer;
+}
+
+button:hover {
+  border-color: var(--accent);
+}
+
+.muted {
+  color: var(--text-secondary);
+}
+
+.json-preview {
+  background: #020617;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  overflow: auto;
+  max-height: 30rem;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.checkbox-field input {
+  width: auto;
+}
