@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { DevicesPanel } from './components/devices/DevicesPanel';
 import { InterfacesPanel } from './components/interfaces/InterfacesPanel';
 import { JsonActions } from './components/json/JsonActions';
@@ -14,6 +14,7 @@ import { selectDeviceSummaries, selectRootReactionProjection, useConfigReducer }
 
 function App() {
   const { state, dispatch } = useConfigReducer();
+  const [previewRefreshVersion, setPreviewRefreshVersion] = useState(0);
 
   const { serializedConfig, validationResult } = useMemo(() => {
     const rootConfig = buildConfig(state);
@@ -46,6 +47,7 @@ function App() {
 
   const validationTone = blockingErrors > 0 ? 'validation-badge validation-badge--error' : 'validation-badge validation-badge--ok';
   const validationLabel = blockingErrors > 0 ? `${blockingErrors} error${blockingErrors === 1 ? '' : 's'}` : 'Valid JSON';
+  const validationStatus = blockingErrors > 0 ? 'errors' : warningCount > 0 ? 'warnings' : 'valid';
 
   return (
     <main className="editor-shell">
@@ -125,7 +127,13 @@ function App() {
           <InterfacesPanel interfaces={state.interfaces} dispatch={dispatch} />
         </CollapsibleSection>
       </div>
-      <JsonActions state={state} dispatch={dispatch} serializedConfig={serializedConfig} />
+      <JsonActions
+        state={state}
+        dispatch={dispatch}
+        serializedConfig={serializedConfig}
+        validationStatus={validationStatus}
+        onGeneratePreview={() => setPreviewRefreshVersion((version) => version + 1)}
+      />
       <div id="validation" className="editor-anchor">
         <CollapsibleSection
           title={
@@ -144,7 +152,7 @@ function App() {
       </div>
       <div id="json-preview" className="editor-anchor">
         <CollapsibleSection title="JSON Preview" defaultOpen>
-          <JsonPreview serializedConfig={serializedConfig} />
+          <JsonPreview key={previewRefreshVersion} serializedConfig={serializedConfig} />
         </CollapsibleSection>
       </div>
     </main>

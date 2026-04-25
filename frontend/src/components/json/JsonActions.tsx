@@ -6,6 +6,8 @@ type JsonActionsProps = {
   state: AppState;
   dispatch: Dispatch<ConfigAction>;
   serializedConfig: string;
+  validationStatus: 'valid' | 'warnings' | 'errors';
+  onGeneratePreview: () => void;
 };
 
 const EMPTY_STATE: AppState = {
@@ -36,17 +38,35 @@ function fallbackCopyText(text: string): boolean {
   return didCopy;
 }
 
-export function JsonActions({ state, dispatch, serializedConfig }: JsonActionsProps) {
+export function JsonActions({
+  state,
+  dispatch,
+  serializedConfig,
+  validationStatus,
+  onGeneratePreview
+}: JsonActionsProps) {
   const [status, setStatus] = useState<string>('');
+
+  const validationStatusText =
+    validationStatus === 'errors'
+      ? 'JSON has errors'
+      : validationStatus === 'warnings'
+        ? 'JSON has warnings'
+        : 'JSON is valid';
+
+  const refreshPreview = () => {
+    onGeneratePreview();
+    setStatus('Preview refreshed');
+  };
 
   const copyJson = async () => {
     try {
       await navigator.clipboard.writeText(serializedConfig);
-      setStatus('JSON copied to clipboard');
+      setStatus('Copied to clipboard');
       return;
     } catch {
       const didCopy = fallbackCopyText(serializedConfig);
-      setStatus(didCopy ? 'JSON copied to clipboard' : 'Clipboard unavailable in this environment');
+      setStatus(didCopy ? 'Copied to clipboard' : 'Clipboard unavailable in this environment');
     }
   };
 
@@ -60,7 +80,7 @@ export function JsonActions({ state, dispatch, serializedConfig }: JsonActionsPr
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(objectUrl);
-    setStatus('JSON downloaded as biosim-config.json');
+    setStatus('Downloaded successfully');
   };
 
   const resetState = () => {
@@ -77,10 +97,12 @@ export function JsonActions({ state, dispatch, serializedConfig }: JsonActionsPr
       <h2>JSON Actions</h2>
       <p className="section-lead">Copy, download, or reset the workspace state while iterating on a valid configuration payload.</p>
       <div className="button-row">
+        <button onClick={refreshPreview}>Generate/Refresh preview</button>
         <button onClick={copyJson}>Copy JSON</button>
         <button onClick={downloadJson}>Download JSON</button>
         <button onClick={resetState}>Reset state</button>
       </div>
+      <p className="muted">{validationStatusText}</p>
       {status ? <p className="muted">{status}</p> : null}
     </section>
   );
