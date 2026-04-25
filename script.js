@@ -100,26 +100,14 @@ function revealNewElement(element) {
   if (!element) return;
 
   const parentDevice = element.closest('.device-entry');
-  if (parentDevice) expandCollapsibleCard(parentDevice);
+  if (parentDevice) expandCard(parentDevice);
 
-  expandCollapsibleCard(element);
+  expandCard(element);
 
   element.classList.add('just-added');
   element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   setTimeout(() => element.classList.remove('just-added'), 1600);
-}
-
-function updateDeviceCounter() {
-  const count = dom.devicesContainer.querySelectorAll('.device-entry').length;
-  dom.countDevices.textContent = String(count);
-  dom.devicesEmpty.classList.toggle('d-none', count > 0);
-}
-
-function updateInterfaceCounter() {
-  const count = dom.interfacesContainer.querySelectorAll('.interface-entry').length;
-  dom.countInterfaces.textContent = String(count);
-  dom.interfacesEmpty.classList.toggle('d-none', count > 0);
 }
 
 function removeCard(buttonEl) {
@@ -128,8 +116,8 @@ function removeCard(buttonEl) {
 
   card.remove();
 
-  updateDeviceCounter();
-  updateInterfaceCounter();
+  updateDeviceCounters(dom);
+  updateInterfaceCounters(dom);
   refreshAllInterfaceCards();
   refreshAllEntryChemicalOptions();
   updateCardSummaries();
@@ -143,7 +131,7 @@ function addDevice() {
 
   const newElement = dom.devicesContainer.lastElementChild;
 
-  updateDeviceCounter();
+  updateDeviceCounters(dom);
   refreshAllInterfaceCards();
   refreshAllEntryChemicalOptions();
   updateCardSummaries();
@@ -161,7 +149,7 @@ function addInterface() {
 
   const newElement = dom.interfacesContainer.lastElementChild;
 
-  updateInterfaceCounter();
+  updateInterfaceCounters(dom);
   refreshAllInterfaceCards();
   updateCardSummaries();
   revealNewElement(newElement);
@@ -171,7 +159,7 @@ function addNestedCard(buttonEl, type) {
   const deviceCard = buttonEl.closest('.device-entry');
   if (!deviceCard) return;
 
-  expandCollapsibleCard(deviceCard);
+  expandCard(deviceCard);
 
   let container;
   let html;
@@ -969,14 +957,18 @@ function previewConfig() {
   try {
     const { config, warnings } = buildConfig();
 
-    dom.jsonPreview.textContent = JSON.stringify(config, null, 2);
-    renderWarnings(warnings);
-    setStatus(warnings.length ? 'running' : 'success', warnings.length ? 'JSON generated with warnings.' : 'JSON generated successfully.');
+    renderJsonPreview(dom.jsonPreview, config);
+    renderWarnings(dom.warningsBox, warnings, escapeHtml);
+    setStatus(
+      dom.statusBox,
+      warnings.length ? 'running' : 'success',
+      warnings.length ? 'JSON generated with warnings.' : 'JSON generated successfully.'
+    );
     return { config, warnings };
   } catch (error) {
-    dom.jsonPreview.textContent = 'JSON generation failed.';
-    renderWarnings([]);
-    setStatus('error', error.message);
+    renderJsonPreviewError(dom.jsonPreview);
+    renderWarnings(dom.warningsBox, [], escapeHtml);
+    setStatus(dom.statusBox, 'error', error.message);
     throw error;
   }
 }
@@ -990,7 +982,7 @@ async function runSimulation() {
     return;
   }
 
-  setStatus('running', 'Running simulation...');
+  setStatus(dom.statusBox, 'running', 'Running simulation...');
   dom.resultSummary.innerHTML = '';
   dom.plots.innerHTML = '';
   dom.serverBox.classList.add('d-none');
@@ -1010,10 +1002,10 @@ async function runSimulation() {
       throw new Error(detail);
     }
 
-    setStatus('success', payload?.message || 'Simulation finished successfully.');
+    setStatus(dom.statusBox, 'success', payload?.message || 'Simulation finished successfully.');
     renderBackendResults(payload);
   } catch (error) {
-    setStatus('error', error.message);
+    setStatus(dom.statusBox, 'error', error.message);
   }
 }
 
