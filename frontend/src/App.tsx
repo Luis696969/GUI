@@ -5,6 +5,7 @@ import { JsonActions } from './components/json/JsonActions';
 import { JsonPreview } from './components/json/JsonPreview';
 import { ValidationSummary } from './components/json/ValidationSummary';
 import { ReactionsPanel } from './components/reactions/ReactionsPanel';
+import { CollapsibleSection } from './components/layout/CollapsibleSection';
 import { SectionNav } from './components/layout/SectionNav';
 import { SimulationPanel } from './components/simulation/SimulationPanel';
 import { buildConfig } from './domain/config/buildConfig';
@@ -52,23 +53,35 @@ function App() {
       <SectionNav />
 
       <div id="simulation" className="editor-anchor">
-        <SimulationPanel simulation={state.simulation} dispatch={dispatch} />
+        <CollapsibleSection title="Simulation" defaultOpen>
+          <SimulationPanel simulation={state.simulation} dispatch={dispatch} />
+        </CollapsibleSection>
       </div>
       <div id="devices" className="editor-anchor">
-        <DevicesPanel devices={state.devices} dispatch={dispatch} />
+        <CollapsibleSection title="Devices" defaultOpen>
+          <DevicesPanel devices={state.devices} dispatch={dispatch} />
+        </CollapsibleSection>
       </div>
       <div id="reactions" className="editor-anchor">
-        <ReactionsPanel devices={state.devices} dispatch={dispatch} />
+        <CollapsibleSection title="Reactions" defaultOpen>
+          <ReactionsPanel devices={state.devices} dispatch={dispatch} />
+        </CollapsibleSection>
       </div>
       <div id="interfaces" className="editor-anchor">
-        <InterfacesPanel interfaces={state.interfaces} dispatch={dispatch} />
+        <CollapsibleSection title="Interfaces" defaultOpen>
+          <InterfacesPanel interfaces={state.interfaces} dispatch={dispatch} />
+        </CollapsibleSection>
       </div>
       <JsonActions state={state} dispatch={dispatch} serializedConfig={serializedConfig} />
       <div id="validation" className="editor-anchor">
-        <ValidationSummary validationResult={validationResult} />
+        <CollapsibleSection title="Validation" defaultOpen>
+          <ValidationSummary validationResult={validationResult} />
+        </CollapsibleSection>
       </div>
       <div id="json-preview" className="editor-anchor">
-        <JsonPreview serializedConfig={serializedConfig} />
+        <CollapsibleSection title="JSON Preview" defaultOpen>
+          <JsonPreview serializedConfig={serializedConfig} />
+        </CollapsibleSection>
       </div>
     </main>
   );

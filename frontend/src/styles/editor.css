@@ -251,3 +251,52 @@ button:hover {
   color: var(--text-primary);
   outline: none;
 }
+
+.collapsible-section {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklab, var(--surface), black 8%);
+  overflow: clip;
+}
+
+.collapsible-section__summary {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.collapsible-section__summary::-webkit-details-marker {
+  display: none;
+}
+
+.collapsible-section__summary::before {
+  content: '▾';
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transform-origin: center;
+}
+
+.collapsible-section:not([open]) .collapsible-section__summary::before {
+  transform: rotate(-90deg);
+}
+
+.collapsible-section__summary:hover {
+  background: color-mix(in oklab, var(--surface), black 12%);
+}
+
+.collapsible-section__summary:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--accent), white 10%);
+  outline-offset: -2px;
+}
+
+.collapsible-section__content {
+  padding: 0 0.75rem 0.75rem;
+}
+
+.collapsible-section__content > .editor-panel {
+  margin: 0;
+}
