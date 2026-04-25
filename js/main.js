@@ -10,6 +10,7 @@ import { setStatus } from './ui/status.js';
 import { renderWarnings } from './ui/warnings.js';
 import { renderJsonPreview } from './ui/jsonPreview.js';
 import { clearResults, renderBackendResults } from './ui/results.js';
+import { copyJson, downloadJson } from './ui/jsonActions.js';
 import { buildConfig } from './builders/buildConfig.js';
 import { getDeviceSummaries } from './builders/buildDevice.js';
 import { refreshAllInterfaceCards } from './ui/interfaceCards.js';
@@ -111,48 +112,6 @@ async function runSimulation() {
   }
 }
 
-async function copyJson() {
-  let config;
-  try { ({ config } = previewConfig()); } catch { return; }
-  const json = JSON.stringify(config, null, 2);
-  try {
-    if (navigator.clipboard?.writeText) {
-      await navigator.clipboard.writeText(json);
-      setStatus(dom, 'success', 'JSON copied to clipboard.');
-      return;
-    }
-  } catch {
-    // Fallback below.
-  }
-
-  const fallbackInput = document.createElement('textarea');
-  fallbackInput.value = json;
-  fallbackInput.setAttribute('readonly', '');
-  fallbackInput.style.position = 'absolute';
-  fallbackInput.style.left = '-9999px';
-  document.body.appendChild(fallbackInput);
-  fallbackInput.select();
-  const copied = document.execCommand('copy');
-  document.body.removeChild(fallbackInput);
-  setStatus(dom, copied ? 'success' : 'error', copied ? 'JSON copied to clipboard.' : 'Unable to copy JSON.');
-}
-
-function downloadJson() {
-  let config;
-  try { ({ config } = previewConfig()); } catch { return; }
-  const json = `${JSON.stringify(config, null, 2)}\n`;
-  const blob = new Blob([json], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.download = 'biosim-config.json';
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  setStatus(dom, 'success', 'JSON downloaded as biosim-config.json.');
-}
-
 document.addEventListener('click', (event) => {
   const target = event.target;
   if (target.matches('.collapsible-toggle')) toggleCollapse(target);
@@ -183,7 +142,7 @@ document.addEventListener('change', (event) => {
 
 dom.runBtn.addEventListener('click', runSimulation);
 dom.previewBtn.addEventListener('click', () => { try { previewConfig(); } catch { /* status shown */ } });
-dom.copyBtn.addEventListener('click', copyJson);
-dom.downloadBtn.addEventListener('click', downloadJson);
+dom.copyBtn.addEventListener('click', () => copyJson(previewConfig, setStatus, dom));
+dom.downloadBtn.addEventListener('click', () => downloadJson(previewConfig, setStatus, dom));
 
 addDevice();
