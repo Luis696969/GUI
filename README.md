@@ -98,6 +98,47 @@ Typical use today:
 - Download or copy JSON.
 - Run your simulator externally (script, notebook, CLI, or another service).
 
+## Verification checklist
+Use this checklist after changes to confirm core authoring behavior and JSON contract consistency.
+
+1. **Static server launch**
+   - **Action:** Start a local static server (for example `python -m http.server 8080`) and open `http://127.0.0.1:8080/`.
+   - **Expected outcome:** App loads successfully, forms render, and there are no blank sections or fatal load failures.
+   - **Inspect:** Browser UI (main page and all major cards/sections).
+
+2. **No module import errors in browser console**
+   - **Action:** Open browser DevTools Console immediately after page load and after clicking **Generate JSON preview** once.
+   - **Expected outcome:** No `Failed to load module script`, `Cannot use import statement outside a module`, or unresolved import/path errors.
+   - **Inspect:** Browser DevTools Console.
+
+3. **Add/remove device**
+   - **Action:** Add at least one device card, fill required fields, then remove a device card.
+   - **Expected outcome:** Device counters and card indices update cleanly; removed device no longer appears in summaries or generated JSON.
+   - **Inspect:** Devices UI panel and JSON preview panel.
+
+4. **Add/remove nested cards (chemical / cell / entry / reaction)**
+   - **Action:** Within a device, add and remove chemical, cell, and entry cards; also add/remove root-level reaction cards.
+   - **Expected outcome:** Nested counters and collapsible labels stay consistent; deleted nested objects are absent from preview/download output.
+   - **Inspect:** Device sub-panels, Reactions UI panel, and JSON preview panel.
+
+5. **Add/remove interface**
+   - **Action:** Add an interface between two devices, then remove it.
+   - **Expected outcome:** Interface list updates without stale references; JSON reflects current interfaces only.
+   - **Inspect:** Interfaces UI panel and JSON preview panel.
+
+6. **JSON preview / copy / download behavior**
+   - **Action:** Run **Generate JSON preview**, **Copy JSON**, and **Download JSON** on a valid configuration.
+   - **Expected outcome:** Preview updates with current payload; copy places current payload on clipboard; download saves `biosim-config.json` containing the same payload.
+   - **Inspect:** JSON preview panel, clipboard paste target (temporary text editor), and downloaded file contents.
+
+7. **Contract spot-check**
+   - **Action:** Validate generated JSON shape in preview and downloaded file.
+   - **Expected outcome:** 
+     - `reactions` exists at the **root level** (not nested under devices).
+     - `washouts` exists at the **root level** and defaults to `[]` when unused.
+     - Each interface uses `locs.device1` and `locs.device2` as literal keys.
+   - **Inspect:** JSON preview panel and downloaded `biosim-config.json`.
+
 ## Simulation execution status (explicit)
 - The GUI is primarily a **JSON authoring tool**.
 - Actual simulation execution is **not performed by the frontend itself**.
