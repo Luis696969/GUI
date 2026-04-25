@@ -27,7 +27,8 @@ export function buildConfig(dom) {
       simulation,
       devices: exportDevices,
       interfaces,
-      reactions
+      reactions,
+      washouts: []
     }),
     warnings
   };
