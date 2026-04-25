@@ -11,8 +11,8 @@ import { renderWarnings } from './ui/warnings.js';
 import { renderJsonPreview } from './ui/jsonPreview.js';
 import { clearResults, renderBackendResults } from './ui/results.js';
 import { buildConfig } from './builders/buildConfig.js';
-import { getDeviceSummaries } from './builders/device.js';
-import { refreshAllInterfaceCards } from './builders/interface.js';
+import { getDeviceSummaries } from './builders/buildDevice.js';
+import { refreshAllInterfaceCards } from './ui/interfaceCards.js';
 import { postSimulation } from './services/api.js';
 
 const dom = getDom();
