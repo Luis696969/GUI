@@ -72,6 +72,29 @@
   color: #fca5a5;
 }
 
+
+.summary-pill--compact {
+  font-size: 0.72rem;
+  padding: 0.1rem 0.45rem;
+}
+
+.section-title-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.section-summary-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
 .section-lead {
   margin: 0.45rem 0 0.7rem;
   color: var(--text-secondary);
