@@ -1,14 +1,12 @@
-import type { AppState } from '../../hooks/useConfigReducer';
-
 type JsonPreviewProps = {
-  state: AppState;
+  serializedConfig: string;
 };
 
-export function JsonPreview({ state }: JsonPreviewProps) {
+export function JsonPreview({ serializedConfig }: JsonPreviewProps) {
   return (
     <section className="editor-panel">
       <h2>JSON Preview</h2>
-      <pre className="json-preview">{JSON.stringify(state, null, 2)}</pre>
+      <pre className="json-preview">{serializedConfig}</pre>
     </section>
   );
 }
