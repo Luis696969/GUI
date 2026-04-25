@@ -117,7 +117,7 @@ Use this checklist after changes to confirm core authoring behavior and JSON con
    - **Inspect:** Devices UI panel and JSON preview panel.
 
 4. **Add/remove nested cards (chemical / cell / entry / reaction)**
-   - **Action:** Within a device, add and remove chemical, cell, and entry cards; also add/remove root-level reaction cards.
+   - **Action:** Within a device, add/remove chemical, cell, entry, and reaction cards. In the generated JSON, reactions must be exported at root level, not nested under devices.
    - **Expected outcome:** Nested counters and collapsible labels stay consistent; deleted nested objects are absent from preview/download output.
    - **Inspect:** Device sub-panels, Reactions UI panel, and JSON preview panel.
 
