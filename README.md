@@ -26,7 +26,6 @@ Top-level files:
 ### `js/` folder tree
 ```text
 js/
-├── app.js
 ├── main.js
 ├── builders/
 │   ├── buildCell.js
@@ -44,23 +43,14 @@ js/
 │   ├── entry.js
 │   ├── interface.js
 │   ├── reaction.js
-│   └── simulation.js
 ├── config/
 │   └── constants.js
 ├── services/
 │   └── api.js
 ├── templates/
 │   ├── cards.js
-│   ├── cellTemplates.js
-│   ├── chemicalTemplates.js
-│   ├── deviceTemplates.js
-│   ├── entryTemplates.js
-│   ├── interfaceTemplates.js
-│   ├── reactionTemplates.js
 │   ├── shared.js
-│   └── sharedTemplates.js
 ├── ui/
-│   ├── collapsible.js
 │   ├── collapsibles.js
 │   ├── counters.js
 │   ├── jsonPreview.js
