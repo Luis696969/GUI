@@ -12,4 +12,5 @@ export type InterfaceModel = {
   device1: string;
   device2: string;
   locs: InterfaceLocs;
+  D_interface?: Record<string, number>;
 };
