@@ -1,11 +1,12 @@
 import { ALLOWED_INITIAL_PROFILES } from '../config/constants.js';
-import { assertAllowed, assertUniqueByName } from '../validators/field.js';
+import { assertAllowed } from '../validators/field.js';
+import { validateNoDuplicateNames, validateNonEmptyName } from '../validators/validateField.js';
 import { normalizeText, readNumber } from '../utils/parse.js';
 import { compactObject } from './buildUtils.js';
 
 export function buildChemical(chemicalEl, deviceName, index) {
   const name = normalizeText(chemicalEl.querySelector('.chem-name')?.value);
-  if (!name) throw new Error(`A chemical has no name in ${deviceName} at position ${index + 1}.`);
+  validateNonEmptyName(name, 'chemical', deviceName, index + 1);
 
   const initialProfile = normalizeText(chemicalEl.querySelector('.chem-profile')?.value) || 'uniform';
   assertAllowed(initialProfile, ALLOWED_INITIAL_PROFILES, `Initial profile for ${name}`);
@@ -20,6 +21,6 @@ export function buildChemical(chemicalEl, deviceName, index) {
 
 export function buildChemicals(deviceEl, deviceName) {
   const chemicals = Array.from(deviceEl.querySelectorAll('.chemical-entry')).map((chemicalEl, index) => buildChemical(chemicalEl, deviceName, index));
-  assertUniqueByName(chemicals, 'Chemical', deviceName);
+  validateNoDuplicateNames(chemicals, 'Chemical', deviceName);
   return chemicals;
 }

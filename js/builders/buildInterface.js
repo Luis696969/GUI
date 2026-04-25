@@ -2,6 +2,7 @@ import { ALLOWED_INTERFACE_SIDES } from '../config/constants.js';
 import { escapeHtml } from '../utils/html.js';
 import { normalizeText, readNumber } from '../utils/parse.js';
 import { assertAllowed } from '../validators/field.js';
+import { validateInterfaceDevicesDiffer, validateInterfaceDiffusion, validateInterfaceSegmentPointsInDomain } from '../validators/validateInterface.js';
 import { updateCardSummaries } from '../ui/summaries.js';
 import { compactObject } from './buildUtils.js';
 
@@ -94,7 +95,7 @@ export function buildInterface(interfaceEl, index, deviceById, warnings) {
   const device2Id = normalizeText(interfaceEl.querySelector('.iface-device2')?.value);
   if (!device1Id || !deviceById[device1Id]) throw new Error(`Interface ${index + 1}: device 1 was not found.`);
   if (!device2Id || !deviceById[device2Id]) throw new Error(`Interface ${index + 1}: device 2 was not found.`);
-  if (device1Id === device2Id) throw new Error(`Interface ${index + 1}: device 1 and device 2 must be different.`);
+  validateInterfaceDevicesDiffer(device1Id, device2Id, index);
 
   const device1 = { id: deviceById[device1Id].id, ...deviceById[device1Id].domain };
   const device2 = { id: deviceById[device2Id].id, ...deviceById[device2Id].domain };
@@ -122,6 +123,8 @@ export function buildInterface(interfaceEl, index, deviceById, warnings) {
 
   const n1 = interfaceGridLength(device1, side1, sideLoc1.start, sideLoc1.stop);
   const n2 = interfaceGridLength(device2, side2, sideLoc2.start, sideLoc2.stop);
+  validateInterfaceSegmentPointsInDomain(sideLoc1.loc, device1, `Interface ${index + 1}, device 1`);
+  validateInterfaceSegmentPointsInDomain(sideLoc2.loc, device2, `Interface ${index + 1}, device 2`);
   if (!Number.isFinite(n1) || !Number.isFinite(n2) || n1 <= 0 || n2 <= 0) throw new Error(`Interface ${index + 1}: could not compute interface grid size.`);
   if (n1 !== n2) throw new Error(`Interface ${index + 1}: mismatched interface discretization (${n1} vs ${n2} grid intervals).`);
 
@@ -144,6 +147,7 @@ export function buildInterface(interfaceEl, index, deviceById, warnings) {
       warnings.push(`Interface ${index + 1}: D_interface for ${chemical} was not provided; defaulting to 0.`);
     }
   });
+  validateInterfaceDiffusion(D_interface, `Interface ${index + 1}`);
 
   return compactObject({
     device1: device1Id,

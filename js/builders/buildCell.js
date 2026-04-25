@@ -1,11 +1,12 @@
 import { ALLOWED_CELL_SHAPES } from '../config/constants.js';
-import { assertAllowed, assertUniqueByName } from '../validators/field.js';
+import { assertAllowed } from '../validators/field.js';
+import { validateNoDuplicateNames, validateNonEmptyName } from '../validators/validateField.js';
 import { normalizeText, readNumber } from '../utils/parse.js';
 import { compactObject } from './buildUtils.js';
 
 export function buildCell(cellEl, deviceName, index) {
   const name = normalizeText(cellEl.querySelector('.cell-name')?.value);
-  if (!name) throw new Error(`A cell population has no name in ${deviceName} at position ${index + 1}.`);
+  validateNonEmptyName(name, 'cell population', deviceName, index + 1);
 
   const shape = normalizeText(cellEl.querySelector('.cell-shape')?.value) || 'ellipse';
   assertAllowed(shape, ALLOWED_CELL_SHAPES, `Shape for ${name}`);
@@ -20,6 +21,6 @@ export function buildCell(cellEl, deviceName, index) {
 
 export function buildCells(deviceEl, deviceName) {
   const cells = Array.from(deviceEl.querySelectorAll('.cell-entry')).map((cellEl, index) => buildCell(cellEl, deviceName, index));
-  assertUniqueByName(cells, 'Cell population', deviceName);
+  validateNoDuplicateNames(cells, 'Cell population', deviceName);
   return cells;
 }
