@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { Dispatch } from 'react';
 import type { AppState, ConfigAction } from '../../hooks/useConfigReducer';
+import { CONFIG_EXAMPLES } from '../../domain/config/examples';
+import type { BuildConfigInput } from '../../domain/config/types';
 
 type JsonActionsProps = {
   state: AppState;
@@ -15,6 +17,27 @@ const EMPTY_STATE: AppState = {
   devices: [],
   interfaces: []
 };
+
+
+function loadInputIntoReducerState(state: AppState, dispatch: Dispatch<ConfigAction>, input: BuildConfigInput) {
+  dispatch({
+    type: 'simulation/replace',
+    payload: {
+      T: input.simulation?.T ?? EMPTY_STATE.simulation.T,
+      dt: input.simulation?.dt ?? EMPTY_STATE.simulation.dt,
+      run_solver: input.simulation?.run_solver ?? EMPTY_STATE.simulation.run_solver,
+      times_to_plot: input.simulation?.times_to_plot ?? EMPTY_STATE.simulation.times_to_plot
+    }
+  });
+
+  state.devices.forEach((device) => dispatch({ type: 'device/remove', payload: { deviceId: device.id } }));
+  for (let index = state.interfaces.length - 1; index >= 0; index -= 1) {
+    dispatch({ type: 'interface/remove', payload: { index } });
+  }
+
+  (input.devices ?? []).forEach((device) => dispatch({ type: 'device/add', payload: device }));
+  (input.interfaces ?? []).forEach((iface) => dispatch({ type: 'interface/add', payload: iface }));
+}
 
 function fallbackCopyText(text: string): boolean {
   const textarea = document.createElement('textarea');
@@ -84,12 +107,16 @@ export function JsonActions({
   };
 
   const resetState = () => {
-    dispatch({ type: 'simulation/replace', payload: EMPTY_STATE.simulation });
-    state.devices.forEach((device) => dispatch({ type: 'device/remove', payload: { deviceId: device.id } }));
-    for (let index = state.interfaces.length - 1; index >= 0; index -= 1) {
-      dispatch({ type: 'interface/remove', payload: { index } });
-    }
+    loadInputIntoReducerState(state, dispatch, EMPTY_STATE);
     setStatus('State reset');
+  };
+
+  const loadExample = (exampleKey: string) => {
+    const example = CONFIG_EXAMPLES.find((candidate) => candidate.key === exampleKey);
+    if (!example) return;
+
+    loadInputIntoReducerState(state, dispatch, example.input);
+    setStatus(`Loaded example: ${example.label}`);
   };
 
   return (
@@ -101,6 +128,13 @@ export function JsonActions({
         <button onClick={copyJson}>Copy JSON</button>
         <button onClick={downloadJson}>Download JSON</button>
         <button onClick={resetState}>Reset state</button>
+      </div>
+      <div className="button-row">
+        {CONFIG_EXAMPLES.map((example) => (
+          <button key={example.key} onClick={() => loadExample(example.key)} title={example.description}>
+            {example.label}
+          </button>
+        ))}
       </div>
       <p className="muted">{validationStatusText}</p>
       {status ? <p className="muted">{status}</p> : null}
