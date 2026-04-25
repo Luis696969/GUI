@@ -146,41 +146,5 @@ export const configSchema = z.object({
 
 export type ConfigSchema = z.infer<typeof configSchema>;
 
-export type ValidationIssue = {
-  code: string;
-  path: Array<string | number>;
-  message: string;
-};
-
-export type ValidationErrors = {
-  formErrors: string[];
-  fieldErrors: Record<string, string[]>;
-  issues: ValidationIssue[];
-};
-
-export type ValidateConfigResult =
-  | { success: true; data: ConfigSchema }
-  | { success: false; errors: ValidationErrors };
-
-export function validateConfig(config: unknown): ValidateConfigResult {
-  const result = configSchema.safeParse(config);
-
-  if (result.success) {
-    return { success: true, data: result.data };
-  }
-
-  const flattened = result.error.flatten();
-
-  return {
-    success: false,
-    errors: {
-      formErrors: flattened.formErrors,
-      fieldErrors: flattened.fieldErrors,
-      issues: result.error.issues.map((issue) => ({
-        code: issue.code,
-        path: issue.path,
-        message: issue.message
-      }))
-    }
-  };
-}
+export { validateConfig } from './validateConfig';
+export type { ValidateConfigResult, ValidationErrors, ValidationIssue } from './validateConfig';
