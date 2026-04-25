@@ -22,14 +22,15 @@ Top-level files/folders:
 - `main.py` – optional FastAPI adapter for local simulation orchestration.
 - Legacy vanilla prototype files (`index.html`, `style.css`, `js/`) are still present during migration.
 
-## Frontend setup and scripts
+## Install
 From the repository root:
 
 ```bash
 cd frontend && npm install
 ```
 
-Then use:
+## Run / build / test
+From `frontend/`:
 
 ```bash
 npm run dev
@@ -42,21 +43,41 @@ These frontend commands are expected and supported as written:
 - `npm run build`
 - `npm test`
 
-## JSON workflow (generate / copy / download)
+## JSON workflow (refresh / validate / copy / download)
 In the **Run** section of the UI:
 
-1. Click **Generate JSON preview**
-   - Validates form inputs and builds the payload.
-   - Displays the JSON in the preview panel.
-2. Click **Copy JSON**
-   - Regenerates/validates JSON and copies it to clipboard.
-3. Click **Download JSON**
-   - Regenerates/validates JSON and downloads `biosim-config.json`.
+1. Click **Generate JSON preview** (refresh)
+   - Rebuilds the payload from current form state.
+   - Refreshes the preview panel with the latest JSON.
+2. Validation occurs during generate/copy/download actions
+   - The app validates form inputs before exporting JSON.
+   - Invalid state is surfaced in the UI and blocks export actions.
+3. Click **Copy JSON**
+   - Regenerates + validates JSON, then copies to clipboard.
+4. Click **Download JSON**
+   - Regenerates + validates JSON, then downloads `biosim-config.json`.
 
 Typical use today:
 - Build config in UI.
-- Download or copy JSON.
+- Refresh preview as you edit.
+- Copy or download validated JSON.
 - Run your simulator externally (script, notebook, CLI, or another service).
+
+## Examples usage
+Use examples to quickly populate the editor and inspect expected structures.
+
+How to load an example:
+1. Open the example selector in the UI.
+2. Choose an example preset.
+3. Click **Generate JSON preview** to refresh and validate the loaded state.
+4. Review the generated JSON, then copy/download as needed.
+
+What examples demonstrate:
+- Baseline simulation metadata shape (`simulation` fields and plotting times).
+- Device/domain setup patterns (`devices`, chemicals, cells, entries).
+- Root-level reaction payload format (`reactions` at root).
+- Interface linking format (`interfaces` with literal `locs.device1` / `locs.device2` keys).
+- End-to-end export flow from loaded example to copy/download output.
 
 ## JSON contract (required root-level shape)
 Generated JSON must include the following required root-level keys:
@@ -111,13 +132,25 @@ Reference shape:
 ### `interfaces[].locs` literal-key rule
 `locs` must use the **literal keys** `device1` and `device2` (not dynamic device-id keys).
 
-## Backend run status (optional)
+## Backend status: explicit optional
 Backend execution is intentionally optional. Current recommended baseline is frontend-only JSON generation.
 
 - The GUI is primarily a **JSON authoring tool**.
 - Actual simulation execution is **not performed by the frontend itself**.
 - The **"Optional: run backend simulation"** button is an integration hook and only works if a compatible backend server is running.
 - JSON **copy** and **download** workflows remain fully usable independently, even when backend execution is not used.
+
+## Known limitations
+- Frontend does not run simulation kernels directly.
+- Backend integration assumes a compatible local service and is not auto-provisioned.
+- Validation is focused on JSON schema/contract conformance and UI field-level checks.
+- Legacy vanilla files are still present during migration and may not reflect the latest React UI behavior.
+
+## Non-goals
+- Replacing external simulation orchestration pipelines.
+- Providing cluster scheduling, remote job management, or result post-processing.
+- Supporting alternative JSON contracts that wrap payloads in a top-level `config` object.
+- Emitting interface location maps keyed by arbitrary device IDs (must remain literal `device1` / `device2`).
 
 ## Migration note (legacy vanilla implementation)
 Legacy vanilla files are currently **kept temporarily** while parity with the React/TypeScript frontend is validated:
