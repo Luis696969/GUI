@@ -1,65 +1,26 @@
-export type SimulationConfig = Record<string, unknown>;
+import type { DeviceModel } from '../devices/types';
+import type { InterfaceModel, SegmentLoc } from '../interfaces/types';
+import type { ReactionModel } from '../reactions/types';
+import { DEFAULT_SIMULATION } from '../simulation/defaults';
+import type { SimulationModel } from '../simulation/types';
+import type { BuildConfigInput, ExportConfig } from './types';
 
-export type ReactionConfig = {
-  type?: string;
-  substrates?: string[];
-  products?: string[];
-  biologicals?: string[];
-  coefficients?: number[];
-  [key: string]: unknown;
-};
-
-export type DeviceConfig = {
-  reactions?: ReactionConfig[];
-  [key: string]: unknown;
-};
-
-export type InterfaceLocation = {
-  start: [number, number];
-  stop: [number, number];
-};
-
-export type InterfaceConfig = {
-  device1?: string;
-  device2?: string;
-  locs?: {
-    device1?: InterfaceLocation;
-    device2?: InterfaceLocation;
-    [key: string]: unknown;
-  };
-  [key: string]: unknown;
-};
-
-export type ExportConfig = {
-  simulation: SimulationConfig;
-  devices: Array<Omit<DeviceConfig, 'reactions'>>;
-  interfaces: InterfaceConfig[];
-  reactions: ReactionConfig[];
-  washouts: [];
-};
-
-export type BuildConfigInput = {
-  simulation?: SimulationConfig;
-  devices?: DeviceConfig[];
-  interfaces?: InterfaceConfig[];
-};
-
-function reactionFingerprint(reaction: ReactionConfig): string {
+function reactionFingerprint(reaction: ReactionModel): string {
   return JSON.stringify({
     type: reaction.type,
-    substrates: [...(reaction.substrates ?? [])].sort(),
-    products: [...(reaction.products ?? [])].sort(),
-    biologicals: [...(reaction.biologicals ?? [])].sort(),
-    coefficients: (reaction.coefficients ?? []).map(Number)
+    substrates: [...reaction.substrates].sort(),
+    products: [...reaction.products].sort(),
+    biologicals: [...reaction.biologicals].sort(),
+    coefficients: reaction.coefficients.map(Number)
   });
 }
 
-function collectGlobalReactions(devices: DeviceConfig[]): ReactionConfig[] {
+function collectGlobalReactions(devices: DeviceModel[]): ReactionModel[] {
   const seen = new Set<string>();
-  const reactions: ReactionConfig[] = [];
+  const reactions: ReactionModel[] = [];
 
   devices.forEach((device) => {
-    (device.reactions ?? []).forEach((reaction) => {
+    device.reactions.forEach((reaction) => {
       const fingerprint = reactionFingerprint(reaction);
       if (!seen.has(fingerprint)) {
         seen.add(fingerprint);
@@ -71,16 +32,24 @@ function collectGlobalReactions(devices: DeviceConfig[]): ReactionConfig[] {
   return reactions;
 }
 
-function ensureInterfaceLocKeys(iface: InterfaceConfig): InterfaceConfig {
-  const device1Loc = iface.locs?.device1;
-  const device2Loc = iface.locs?.device2;
+function ensureInterfaceLocKeys(iface: InterfaceModel): InterfaceModel {
+  const defaultLoc: SegmentLoc = { start: [0, 0], stop: [0, 0] };
 
   return {
     ...iface,
     locs: {
-      device1: device1Loc,
-      device2: device2Loc
+      device1: iface.locs.device1 ?? defaultLoc,
+      device2: iface.locs.device2 ?? defaultLoc
     }
+  };
+}
+
+function normalizeSimulation(simulation?: Partial<SimulationModel>): SimulationModel {
+  return {
+    T: simulation?.T ?? DEFAULT_SIMULATION.T,
+    dt: simulation?.dt ?? DEFAULT_SIMULATION.dt,
+    run_solver: simulation?.run_solver ?? DEFAULT_SIMULATION.run_solver,
+    times_to_plot: simulation?.times_to_plot ?? [...DEFAULT_SIMULATION.times_to_plot]
   };
 }
 
@@ -92,7 +61,7 @@ function ensureInterfaceLocKeys(iface: InterfaceConfig): InterfaceConfig {
  * - always exports `washouts: []`
  */
 export function buildConfig(input: BuildConfigInput = {}): ExportConfig {
-  const simulation = input.simulation ?? {};
+  const simulation = normalizeSimulation(input.simulation);
   const devices = input.devices ?? [];
   const interfaces = (input.interfaces ?? []).map(ensureInterfaceLocKeys);
   const reactions = collectGlobalReactions(devices);
