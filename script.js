@@ -1,12 +1,13 @@
-const API_URL = 'http://127.0.0.1:8000/run-simulation';
+import {
+  ALLOWED_INITIAL_PROFILES,
+  ALLOWED_CELL_SHAPES,
+  ALLOWED_REACTION_TYPES,
+  ALLOWED_INTERFACE_SIDES,
+  API_URL
+} from './js/config/constants.js';
 
 let deviceCounter = 0;
 let interfaceCounter = 0;
-
-const ALLOWED_INITIAL_PROFILES = ['uniform', 'zero', 'chamber'];
-const ALLOWED_CELL_SHAPES = ['ellipse', 'circle', 'rectangle', 'limacon', 'ying', 'yang'];
-const ALLOWED_REACTION_TYPES = ['cell_consumption_waste', 'sink', 'cells_killing_cells'];
-const ALLOWED_INTERFACE_SIDES = ['left', 'right', 'top', 'bottom'];
 
 const dom = {
   devicesContainer: document.getElementById('container-devices'),
@@ -158,6 +159,8 @@ function toggleCollapse(buttonEl) {
   buttonEl.classList.toggle('collapsed', collapsed);
   buttonEl.innerHTML = collapsed ? '▸' : '▾';
 }
+
+window.toggleCollapse = toggleCollapse;
 
 function expandCollapsibleCard(card) {
   if (!card) return;
