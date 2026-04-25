@@ -7,6 +7,8 @@ export const selectors = {
   countInterfaces: '#count-interfaces',
   runBtn: '#run-btn',
   previewBtn: '#preview-btn',
+  copyBtn: '#copy-btn',
+  downloadBtn: '#download-btn',
   addDeviceBtn: '#add-device-btn',
   addInterfaceBtn: '#add-interface-btn',
   simT: '#sim_T',

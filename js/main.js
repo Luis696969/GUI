@@ -1,4 +1,3 @@
-import { API_URL } from './config/constants.js';
 import { getDom } from './utils/dom.js';
 import { escapeHtml } from './utils/html.js';
 import { normalizeText } from './utils/parse.js';
@@ -14,6 +13,7 @@ import { clearResults, renderBackendResults } from './ui/results.js';
 import { buildConfig } from './builders/buildConfig.js';
 import { getDeviceSummaries } from './builders/device.js';
 import { refreshAllInterfaceCards } from './builders/interface.js';
+import { postSimulation } from './services/api.js';
 
 const dom = getDom();
 let deviceCounter = 0;
@@ -100,17 +100,57 @@ function previewConfig() {
 async function runSimulation() {
   let config;
   try { ({ config } = previewConfig()); } catch { return; }
-  setStatus(dom, 'running', 'Running simulation...');
+  setStatus(dom, 'running', 'Running optional backend simulation...');
   clearResults(dom);
   try {
-    const response = await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(config) });
-    const payload = await response.json().catch(() => null);
-    if (!response.ok) throw new Error(payload?.detail || response.statusText || 'Unknown backend error.');
+    const payload = await postSimulation(config);
     setStatus(dom, 'success', payload?.message || 'Simulation finished successfully.');
     renderBackendResults(dom, payload);
   } catch (error) {
-    setStatus(dom, 'error', error.message);
+    setStatus(dom, 'running', `JSON is ready. Optional backend run failed: ${error.message}`);
   }
+}
+
+async function copyJson() {
+  let config;
+  try { ({ config } = previewConfig()); } catch { return; }
+  const json = JSON.stringify(config, null, 2);
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(json);
+      setStatus(dom, 'success', 'JSON copied to clipboard.');
+      return;
+    }
+  } catch {
+    // Fallback below.
+  }
+
+  const fallbackInput = document.createElement('textarea');
+  fallbackInput.value = json;
+  fallbackInput.setAttribute('readonly', '');
+  fallbackInput.style.position = 'absolute';
+  fallbackInput.style.left = '-9999px';
+  document.body.appendChild(fallbackInput);
+  fallbackInput.select();
+  const copied = document.execCommand('copy');
+  document.body.removeChild(fallbackInput);
+  setStatus(dom, copied ? 'success' : 'error', copied ? 'JSON copied to clipboard.' : 'Unable to copy JSON.');
+}
+
+function downloadJson() {
+  let config;
+  try { ({ config } = previewConfig()); } catch { return; }
+  const json = `${JSON.stringify(config, null, 2)}\n`;
+  const blob = new Blob([json], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'biosim-config.json';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  setStatus(dom, 'success', 'JSON downloaded as biosim-config.json.');
 }
 
 document.addEventListener('click', (event) => {
@@ -143,5 +183,7 @@ document.addEventListener('change', (event) => {
 
 dom.runBtn.addEventListener('click', runSimulation);
 dom.previewBtn.addEventListener('click', () => { try { previewConfig(); } catch { /* status shown */ } });
+dom.copyBtn.addEventListener('click', copyJson);
+dom.downloadBtn.addEventListener('click', downloadJson);
 
 addDevice();
