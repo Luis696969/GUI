@@ -153,8 +153,8 @@ export function buildInterface(interfaceEl, index, deviceById, warnings) {
     device1: device1Id,
     device2: device2Id,
     locs: {
-      [device1Id]: sideLoc1.loc,
-      [device2Id]: sideLoc2.loc
+      device1: sideLoc1.loc,
+      device2: sideLoc2.loc
     },
     D_interface
   });
