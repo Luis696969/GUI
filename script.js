@@ -1,3 +1,8 @@
+import { byId, getDelegatedTarget, qsa } from './js/utils/dom.js';
+import { normalizeText, parseCsv, parseNumberCsv, readNumber } from './js/utils/parse.js';
+import { escapeHtml, buildOptions, buildSelectOptions } from './js/utils/html.js';
+import { revealNewElement, toggleCollapse, expandCollapsibleCard } from './js/utils/scroll.js';
+
 const API_URL = 'http://127.0.0.1:8000/run-simulation';
 
 let deviceCounter = 0;
@@ -9,96 +14,31 @@ const ALLOWED_REACTION_TYPES = ['cell_consumption_waste', 'sink', 'cells_killing
 const ALLOWED_INTERFACE_SIDES = ['left', 'right', 'top', 'bottom'];
 
 const dom = {
-  devicesContainer: document.getElementById('container-devices'),
-  devicesEmpty: document.getElementById('devices-empty'),
-  countDevices: document.getElementById('count-devices'),
+  devicesContainer: byId('container-devices'),
+  devicesEmpty: byId('devices-empty'),
+  countDevices: byId('count-devices'),
 
-  interfacesContainer: document.getElementById('container-interfaces'),
-  interfacesEmpty: document.getElementById('interfaces-empty'),
-  countInterfaces: document.getElementById('count-interfaces'),
+  interfacesContainer: byId('container-interfaces'),
+  interfacesEmpty: byId('interfaces-empty'),
+  countInterfaces: byId('count-interfaces'),
 
-  runBtn: document.getElementById('run-btn'),
-  previewBtn: document.getElementById('preview-btn'),
-  addDeviceBtn: document.getElementById('add-device-btn'),
-  addInterfaceBtn: document.getElementById('add-interface-btn'),
+  runBtn: byId('run-btn'),
+  previewBtn: byId('preview-btn'),
+  addDeviceBtn: byId('add-device-btn'),
+  addInterfaceBtn: byId('add-interface-btn'),
 
-  simT: document.getElementById('sim_T'),
-  simDt: document.getElementById('sim_dt'),
-  simRunSolver: document.getElementById('sim_run_solver'),
-  simTimesToPlot: document.getElementById('sim_times_to_plot'),
+  simT: byId('sim_T'),
+  simDt: byId('sim_dt'),
+  simRunSolver: byId('sim_run_solver'),
+  simTimesToPlot: byId('sim_times_to_plot'),
 
-  jsonPreview: document.getElementById('json-preview'),
-  statusBox: document.getElementById('status-box'),
-  warningsBox: document.getElementById('warnings-box'),
-  serverBox: document.getElementById('server-box'),
-  resultSummary: document.getElementById('result-summary'),
-  plots: document.getElementById('plots')
+  jsonPreview: byId('json-preview'),
+  statusBox: byId('status-box'),
+  warningsBox: byId('warnings-box'),
+  serverBox: byId('server-box'),
+  resultSummary: byId('result-summary'),
+  plots: byId('plots')
 };
-
-function normalizeText(value) {
-  return (value || '').trim();
-}
-
-function parseCsv(value) {
-  return normalizeText(value)
-    .split(',')
-    .map(item => item.trim())
-    .filter(Boolean);
-}
-
-function parseNumberCsv(value, label) {
-  const raw = parseCsv(value);
-  const values = raw.map(item => Number(item));
-
-  values.forEach((num, index) => {
-    if (!Number.isFinite(num)) {
-      throw new Error(`${label}: value "${raw[index]}" is not a valid number.`);
-    }
-  });
-
-  return values;
-}
-
-function readNumber(value, label, { integer = false, min = null, max = null, strictlyPositive = false } = {}) {
-  const num = integer ? parseInt(value, 10) : parseFloat(value);
-
-  if (!Number.isFinite(num)) {
-    throw new Error(`${label} is not valid.`);
-  }
-
-  if (integer && !Number.isInteger(num)) {
-    throw new Error(`${label} must be an integer.`);
-  }
-
-  if (min !== null && num < min) {
-    throw new Error(`${label} must be >= ${min}.`);
-  }
-
-  if (max !== null && num > max) {
-    throw new Error(`${label} must be <= ${max}.`);
-  }
-
-  if (strictlyPositive && num <= 0) {
-    throw new Error(`${label} must be > 0.`);
-  }
-
-  return num;
-}
-
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#039;');
-}
-
-function buildOptions(values, selected = '') {
-  return values
-    .map(value => `<option value="${escapeHtml(value)}" ${value === selected ? 'selected' : ''}>${escapeHtml(value)}</option>`)
-    .join('');
-}
 
 function buildTimesToPlot(T, dt) {
   const candidates = [0, 15, 30, 59, T];
@@ -147,44 +87,6 @@ function makeCardHeader(title, subtitle = '', extraClass = '') {
   `;
 }
 
-function toggleCollapse(buttonEl) {
-  const card = buttonEl.closest('[data-collapsible-card]');
-  if (!card) return;
-
-  const content = card.querySelector('.collapsible-content');
-  if (!content) return;
-
-  const collapsed = content.classList.toggle('is-collapsed');
-  buttonEl.classList.toggle('collapsed', collapsed);
-  buttonEl.innerHTML = collapsed ? '▸' : '▾';
-}
-
-function expandCollapsibleCard(card) {
-  if (!card) return;
-
-  const content = card.querySelector('.collapsible-content');
-  const button = card.querySelector('.collapsible-toggle');
-
-  if (!content || !button) return;
-
-  content.classList.remove('is-collapsed');
-  button.classList.remove('collapsed');
-  button.innerHTML = '▾';
-}
-
-function revealNewElement(element) {
-  if (!element) return;
-
-  const parentDevice = element.closest('.device-entry');
-  if (parentDevice) expandCollapsibleCard(parentDevice);
-
-  expandCollapsibleCard(element);
-
-  element.classList.add('just-added');
-  element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-  setTimeout(() => element.classList.remove('just-added'), 1600);
-}
 
 function updateDeviceCounter() {
   const count = dom.devicesContainer.querySelectorAll('.device-entry').length;
@@ -620,32 +522,32 @@ function getInterfaceSummary(interfaceEl) {
 }
 
 function updateCardSummaries() {
-  document.querySelectorAll('.device-entry').forEach(el => {
+  qsa('.device-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getDeviceSummary(el);
   });
 
-  document.querySelectorAll('.chemical-entry').forEach(el => {
+  qsa('.chemical-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getChemicalSummary(el);
   });
 
-  document.querySelectorAll('.cell-entry').forEach(el => {
+  qsa('.cell-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getCellSummary(el);
   });
 
-  document.querySelectorAll('.entry-entry').forEach(el => {
+  qsa('.entry-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getEntrySummary(el);
   });
 
-  document.querySelectorAll('.reaction-entry').forEach(el => {
+  qsa('.reaction-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getReactionSummary(el);
   });
 
-  document.querySelectorAll('.interface-entry').forEach(el => {
+  qsa('.interface-entry').forEach(el => {
     const target = el.querySelector('.card-summary');
     if (target) target.textContent = getInterfaceSummary(el);
   });
@@ -1015,11 +917,10 @@ function refreshInterfaceDeviceOptions(interfaceEl, summaries) {
   const old1 = select1.value;
   const old2 = select2.value;
 
-  const options = ['<option value="">Select device</option>']
-    .concat(
-      summaries.map(d => `<option value="${escapeHtml(d.id)}">${escapeHtml(d.name)} (${escapeHtml(d.id)})</option>`)
-    )
-    .join('');
+  const options = buildSelectOptions(
+    summaries.map(d => ({ value: d.id, label: `${d.name} (${d.id})` })),
+    { emptyLabel: 'Select device' }
+  );
 
   select1.innerHTML = options;
   select2.innerHTML = options;
@@ -1062,7 +963,7 @@ function refreshEntryChemicalOptionsForDevice(deviceEl) {
 }
 
 function refreshAllEntryChemicalOptions() {
-  document.querySelectorAll('.device-entry').forEach(refreshEntryChemicalOptionsForDevice);
+  qsa('.device-entry').forEach(refreshEntryChemicalOptionsForDevice);
 }
 
 function collectSimulation(warnings) {
@@ -1428,34 +1329,39 @@ function renderBackendResults(payload) {
 }
 
 document.addEventListener('click', event => {
-  const target = event.target;
-
-  if (target.matches('#add-device-btn')) {
+  const addDeviceBtn = getDelegatedTarget(event, '#add-device-btn');
+  if (addDeviceBtn) {
     addDevice();
   }
 
-  if (target.matches('#add-interface-btn')) {
+  const addInterfaceBtn = getDelegatedTarget(event, '#add-interface-btn');
+  if (addInterfaceBtn) {
     addInterface();
   }
 
-  if (target.matches('.remove-card-btn')) {
-    removeCard(target);
+  const removeBtn = getDelegatedTarget(event, '.remove-card-btn');
+  if (removeBtn) {
+    removeCard(removeBtn);
   }
 
-  if (target.matches('.add-chemical-btn')) {
-    addNestedCard(target, 'chemical');
+  const addChemicalBtn = getDelegatedTarget(event, '.add-chemical-btn');
+  if (addChemicalBtn) {
+    addNestedCard(addChemicalBtn, 'chemical');
   }
 
-  if (target.matches('.add-cell-btn')) {
-    addNestedCard(target, 'cell');
+  const addCellBtn = getDelegatedTarget(event, '.add-cell-btn');
+  if (addCellBtn) {
+    addNestedCard(addCellBtn, 'cell');
   }
 
-  if (target.matches('.add-entry-btn')) {
-    addNestedCard(target, 'entry');
+  const addEntryBtn = getDelegatedTarget(event, '.add-entry-btn');
+  if (addEntryBtn) {
+    addNestedCard(addEntryBtn, 'entry');
   }
 
-  if (target.matches('.add-reaction-btn')) {
-    addNestedCard(target, 'reaction');
+  const addReactionBtn = getDelegatedTarget(event, '.add-reaction-btn');
+  if (addReactionBtn) {
+    addNestedCard(addReactionBtn, 'reaction');
   }
 });
 
@@ -1512,5 +1418,7 @@ dom.previewBtn.addEventListener('click', () => {
     // Status box already contains the error.
   }
 });
+
+window.toggleCollapse = toggleCollapse;
 
 addDevice();
