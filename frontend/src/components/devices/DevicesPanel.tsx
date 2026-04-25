@@ -27,6 +27,7 @@ export function DevicesPanel({ devices, dispatch }: DevicesPanelProps) {
           Add device
         </button>
       </div>
+      <p className="section-lead">Configure each spatial domain, species set, cells, and boundary entries that appear in the final JSON.</p>
 
       <div className="card-grid">
         {devices.map((device) => (

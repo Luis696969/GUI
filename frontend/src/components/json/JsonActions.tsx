@@ -75,6 +75,7 @@ export function JsonActions({ state, dispatch, serializedConfig }: JsonActionsPr
   return (
     <section className="editor-panel">
       <h2>JSON Actions</h2>
+      <p className="section-lead">Copy, download, or reset the workspace state while iterating on a valid configuration payload.</p>
       <div className="button-row">
         <button onClick={copyJson}>Copy JSON</button>
         <button onClick={downloadJson}>Download JSON</button>

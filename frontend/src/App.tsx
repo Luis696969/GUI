@@ -24,8 +24,30 @@ function App() {
     return { serializedConfig, validationResult };
   }, [state]);
 
+  const blockingErrors = validationResult.success ? 0 : validationResult.errors.issues.length;
+  const warningCount = validationResult.warnings.length;
+  const reactionCount = state.devices.reduce((count, device) => count + device.reactions.length, 0);
+
+  const validationTone = blockingErrors > 0 ? 'validation-badge validation-badge--error' : 'validation-badge validation-badge--ok';
+  const validationLabel = blockingErrors > 0 ? `${blockingErrors} blocking error${blockingErrors === 1 ? '' : 's'}` : 'Valid JSON';
+
   return (
     <main className="editor-shell">
+      <header className="page-header editor-panel">
+        <p className="eyebrow">Configuration Workspace</p>
+        <h1>BioSim Config Editor</h1>
+        <p className="page-subtitle">
+          Author simulation JSON with guided panels, instant validation feedback, and backend-ready export actions.
+        </p>
+        <div className="summary-row" role="status" aria-live="polite">
+          <span className="summary-pill">Devices: {state.devices.length}</span>
+          <span className="summary-pill">Interfaces: {state.interfaces.length}</span>
+          <span className="summary-pill">Reactions: {reactionCount}</span>
+          <span className="summary-pill">Warnings: {warningCount}</span>
+          <span className={validationTone}>{validationLabel}</span>
+        </div>
+      </header>
+
       <SimulationPanel simulation={state.simulation} dispatch={dispatch} />
       <DevicesPanel devices={state.devices} dispatch={dispatch} />
       <ReactionsPanel devices={state.devices} dispatch={dispatch} />

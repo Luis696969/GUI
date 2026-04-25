@@ -16,6 +16,7 @@ export function InterfacesPanel({ interfaces, dispatch }: InterfacesPanelProps) 
         <h2>Interfaces ({interfaces.length})</h2>
         <button onClick={() => dispatch(configActions.addInterface({ ...DEFAULT_INTERFACE }))}>Add interface</button>
       </div>
+      <p className="section-lead">Describe coupling between device boundaries and diffusion mappings across shared segments.</p>
 
       <div className="card-grid">
         {interfaces.map((iface, index) => (

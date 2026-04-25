@@ -12,6 +12,7 @@ export function SimulationPanel({ simulation, dispatch }: SimulationPanelProps) 
   return (
     <section className="editor-panel">
       <h2>Simulation</h2>
+      <p className="section-lead">Define global runtime controls, solver behavior, and output sampling checkpoints.</p>
       <div className="field-grid">
         <label>
           Total time (T)
