@@ -12,8 +12,7 @@ Current goals:
 > **Important:** Simulation execution itself is **manual/external by default**. The frontend focuses on generating valid JSON; running the simulation engine is done outside this UI unless you wire and run the optional backend.
 
 ## Stack
-- **Frontend:** React + Vite + TypeScript
-- **Validation / contracts:** Zod
+- **Frontend stack:** React + Vite + TypeScript + Zod
 - **Testing:** Vitest
 - **Optional backend:** FastAPI (`main.py`) exposing `POST /run-simulation` for local integration
 
@@ -38,6 +37,11 @@ npm run build
 npm test
 ```
 
+These frontend commands are expected and supported as written:
+- `npm run dev`
+- `npm run build`
+- `npm test`
+
 ## JSON workflow (generate / copy / download)
 In the **Run** section of the UI:
 
@@ -61,6 +65,11 @@ Generated JSON must include the following required root-level keys:
 - `interfaces` (array)
 - `reactions` (array)
 - `washouts` (array; default `[]` when unused)
+
+The exported contract is guarded by Vitest contract tests and must keep this shape:
+- Root-level path `simulation/devices/interfaces/reactions/washouts`
+- `interfaces[].locs` with literal keys `device1` and `device2`
+- **No** top-level `config` key
 
 Reference shape:
 
@@ -108,6 +117,7 @@ Backend execution is intentionally optional. Current recommended baseline is fro
 - The GUI is primarily a **JSON authoring tool**.
 - Actual simulation execution is **not performed by the frontend itself**.
 - The **"Optional: run backend simulation"** button is an integration hook and only works if a compatible backend server is running.
+- JSON **copy** and **download** workflows remain fully usable independently, even when backend execution is not used.
 
 ## Migration note (legacy vanilla implementation)
 Legacy vanilla files are currently **kept temporarily** while parity with the React/TypeScript frontend is validated:
