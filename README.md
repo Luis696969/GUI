@@ -133,8 +133,8 @@ The generated payload is expected to follow this high-level shape:
       "device1": "dev_1",
       "device2": "dev_2",
       "locs": {
-        "dev_1": { "start": [0, 0], "stop": [0, 1] },
-        "dev_2": { "start": [1, 0], "stop": [1, 1] }
+        "device1": { "start": [0, 0], "stop": [0, 1] },
+        "device2": { "start": [1, 0], "stop": [1, 1] }
       },
       "D_interface": {
         "oxygen": 1e-5
@@ -147,21 +147,28 @@ The generated payload is expected to follow this high-level shape:
 ```
 
 ### `interfaces[].locs` literal-key rule
-`locs` must use **literal device-id keys** matching `device1` and `device2` exactly.
+`locs` must use the **literal keys** `device1` and `device2` (not dynamic device-id keys).
 
-Correct pattern:
+Required pattern:
 ```json
 "locs": {
-  "<device1-id>": { "start": [x, y], "stop": [x, y] },
-  "<device2-id>": { "start": [x, y], "stop": [x, y] }
+  "device1": { "start": [x, y], "stop": [x, y] },
+  "device2": { "start": [x, y], "stop": [x, y] }
 }
 ```
 
-So if `device1 = "biofilm_A"` and `device2 = "channel_B"`, then `locs` must be:
+`device1` and `device2` fields still store the actual selected device IDs (for example, `dev_1` and `dev_2`). A matching interface object looks like:
 ```json
-"locs": {
-  "biofilm_A": { "start": [0, 0], "stop": [0, 5] },
-  "channel_B": { "start": [2, 0], "stop": [2, 5] }
+{
+  "device1": "dev_1",
+  "device2": "dev_2",
+  "locs": {
+    "device1": { "start": [0, 0], "stop": [0, 5] },
+    "device2": { "start": [2, 0], "stop": [2, 5] }
+  },
+  "D_interface": {
+    "oxygen": 1e-5
+  }
 }
 ```
 
