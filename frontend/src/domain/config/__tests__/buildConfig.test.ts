@@ -194,6 +194,113 @@ describe('validateConfig', () => {
     expect(paths).toContain('interfaces.0.D_interface.glucose');
   });
 
+
+  it('runs second-pass checks for entries, interfaces, locations, reactions, and signatures', () => {
+    const config = makeValidConfigInput();
+
+    const invalidSecondPassConfig = {
+      ...config,
+      devices: [
+        {
+          ...config.devices[0],
+          entries: [{ position: [10, 10], chemical: 'missing_chemical', concentration: 1 }]
+        },
+        ...config.devices.slice(1)
+      ],
+      interfaces: [
+        {
+          ...config.interfaces[0],
+          device2: 'missing-device',
+          locs: {
+            device1: { start: [0, 0], stop: [999, 999] },
+            device2: { start: [0, 0], stop: [1, 1] }
+          }
+        }
+      ],
+      reactions: [
+        {
+          type: 'cell_consumption_waste',
+          substrates: ['missing-substrate', 'extra'],
+          products: ['missing-product', 'extra-product'],
+          biologicals: ['missing-cell', 'extra-cell'],
+          coefficients: [1]
+        },
+        {
+          type: 'sink',
+          substrates: [],
+          products: [],
+          biologicals: [],
+          coefficients: []
+        },
+        {
+          type: 'cells_killing_cells',
+          substrates: [],
+          products: [],
+          biologicals: ['cellA'],
+          coefficients: []
+        }
+      ]
+    };
+
+    const result = validateConfig(invalidSecondPassConfig);
+
+    expect(result.success).toBe(false);
+    if (result.success) {
+      throw new Error('Expected validation to fail');
+    }
+
+    const paths = result.errors.issues.map((issue) => issue.path.join('.'));
+    const messages = result.errors.issues.map((issue) => issue.message);
+
+    expect(paths).toContain('devices.0.entries.0.chemical');
+    expect(paths).toContain('interfaces.0.device2');
+    expect(paths).toContain('interfaces.0.locs.device1');
+    expect(paths).toContain('reactions.0.substrates.0');
+    expect(paths).toContain('reactions.0.products.0');
+    expect(paths).toContain('reactions.0.biologicals.0');
+    expect(paths).toContain('reactions.1.substrates');
+    expect(paths).toContain('reactions.2.biologicals');
+
+    expect(messages).toContain(
+      'Reaction type "cell_consumption_waste" requires exactly 1 substrate, 1 product, and 1 biological.'
+    );
+  });
+
+  it('returns non-blocking warnings when linked devices share no chemicals', () => {
+    const config = makeValidConfigInput();
+
+    const warningConfig = {
+      ...config,
+      devices: [
+        {
+          ...config.devices[0],
+          chemicals: [{ name: 'glucose' }]
+        },
+        {
+          ...config.devices[1],
+          chemicals: [{ name: 'oxygen' }]
+        }
+      ],
+      interfaces: [
+        {
+          ...config.interfaces[0],
+          D_interface: { oxygen: 0.5 }
+        }
+      ],
+      reactions: []
+    };
+
+    const result = validateConfig(warningConfig);
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      throw new Error('Expected validation to succeed with warnings');
+    }
+
+    expect(result.warnings.length).toBeGreaterThan(0);
+    expect(result.warnings[0].message).toContain('zero shared chemicals');
+  });
+
   it('rejects duplicate chemical and cell names', () => {
     const config = makeValidConfigInput();
 
