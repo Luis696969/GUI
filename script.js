@@ -1,3 +1,15 @@
+import { toggleCollapse, expandCard } from './js/ui/collapsible.js';
+import { updateDeviceCounters, updateInterfaceCounters } from './js/ui/counters.js';
+import { updateCardSummaries } from './js/ui/summaries.js';
+import { renderWarnings } from './js/ui/warnings.js';
+import { setStatus } from './js/ui/status.js';
+import {
+  renderJsonPreview,
+  renderJsonPreviewError,
+  copyJsonPreview,
+  downloadJsonPreview
+} from './js/ui/jsonPreview.js';
+
 const API_URL = 'http://127.0.0.1:8000/run-simulation';
 
 let deviceCounter = 0;
@@ -28,6 +40,8 @@ const dom = {
   simTimesToPlot: document.getElementById('sim_times_to_plot'),
 
   jsonPreview: document.getElementById('json-preview'),
+  copyPreviewBtn: document.getElementById('copy-preview-btn'),
+  downloadPreviewBtn: document.getElementById('download-preview-btn'),
   statusBox: document.getElementById('status-box'),
   warningsBox: document.getElementById('warnings-box'),
   serverBox: document.getElementById('server-box'),
@@ -112,27 +126,6 @@ function buildTimesToPlot(T, dt) {
   )].sort((a, b) => a - b);
 }
 
-function setStatus(type, message) {
-  dom.statusBox.className = `status-box status-${type}`;
-  dom.statusBox.textContent = message;
-}
-
-function renderWarnings(warnings) {
-  if (!warnings.length) {
-    dom.warningsBox.classList.add('d-none');
-    dom.warningsBox.innerHTML = '';
-    return;
-  }
-
-  dom.warningsBox.classList.remove('d-none');
-  dom.warningsBox.innerHTML = `
-    <strong>Warnings</strong>
-    <ul class="mb-0">
-      ${warnings.map(warning => `<li>${escapeHtml(warning)}</li>`).join('')}
-    </ul>
-  `;
-}
-
 function makeCardHeader(title, subtitle = '', extraClass = '') {
   return `
     <div class="card-header-row">
@@ -147,55 +140,18 @@ function makeCardHeader(title, subtitle = '', extraClass = '') {
   `;
 }
 
-function toggleCollapse(buttonEl) {
-  const card = buttonEl.closest('[data-collapsible-card]');
-  if (!card) return;
-
-  const content = card.querySelector('.collapsible-content');
-  if (!content) return;
-
-  const collapsed = content.classList.toggle('is-collapsed');
-  buttonEl.classList.toggle('collapsed', collapsed);
-  buttonEl.innerHTML = collapsed ? '▸' : '▾';
-}
-
-function expandCollapsibleCard(card) {
-  if (!card) return;
-
-  const content = card.querySelector('.collapsible-content');
-  const button = card.querySelector('.collapsible-toggle');
-
-  if (!content || !button) return;
-
-  content.classList.remove('is-collapsed');
-  button.classList.remove('collapsed');
-  button.innerHTML = '▾';
-}
-
 function revealNewElement(element) {
   if (!element) return;
 
   const parentDevice = element.closest('.device-entry');
-  if (parentDevice) expandCollapsibleCard(parentDevice);
+  if (parentDevice) expandCard(parentDevice);
 
-  expandCollapsibleCard(element);
+  expandCard(element);
 
   element.classList.add('just-added');
   element.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
   setTimeout(() => element.classList.remove('just-added'), 1600);
-}
-
-function updateDeviceCounter() {
-  const count = dom.devicesContainer.querySelectorAll('.device-entry').length;
-  dom.countDevices.textContent = String(count);
-  dom.devicesEmpty.classList.toggle('d-none', count > 0);
-}
-
-function updateInterfaceCounter() {
-  const count = dom.interfacesContainer.querySelectorAll('.interface-entry').length;
-  dom.countInterfaces.textContent = String(count);
-  dom.interfacesEmpty.classList.toggle('d-none', count > 0);
 }
 
 function removeCard(buttonEl) {
@@ -204,8 +160,8 @@ function removeCard(buttonEl) {
 
   card.remove();
 
-  updateDeviceCounter();
-  updateInterfaceCounter();
+  updateDeviceCounters(dom);
+  updateInterfaceCounters(dom);
   refreshAllInterfaceCards();
   refreshAllEntryChemicalOptions();
   updateCardSummaries();
@@ -523,7 +479,7 @@ function addDevice() {
 
   const newElement = dom.devicesContainer.lastElementChild;
 
-  updateDeviceCounter();
+  updateDeviceCounters(dom);
   refreshAllInterfaceCards();
   refreshAllEntryChemicalOptions();
   updateCardSummaries();
@@ -538,7 +494,7 @@ function addInterface() {
 
   const newElement = dom.interfacesContainer.lastElementChild;
 
-  updateInterfaceCounter();
+  updateInterfaceCounters(dom);
   refreshAllInterfaceCards();
   updateCardSummaries();
   revealNewElement(newElement);
@@ -548,7 +504,7 @@ function addNestedCard(buttonEl, type) {
   const deviceCard = buttonEl.closest('.device-entry');
   if (!deviceCard) return;
 
-  expandCollapsibleCard(deviceCard);
+  expandCard(deviceCard);
 
   let container;
   let html;
@@ -577,78 +533,6 @@ function addNestedCard(buttonEl, type) {
     updateCardSummaries();
     revealNewElement(newElement);
   }
-}
-
-function getDeviceSummary(deviceEl) {
-  const name = normalizeText(deviceEl.querySelector('.device-name')?.value) || 'Device';
-  const chemicals = deviceEl.querySelectorAll('.chemical-entry').length;
-  const cells = deviceEl.querySelectorAll('.cell-entry').length;
-  const entries = deviceEl.querySelectorAll('.entry-entry').length;
-  const reactions = deviceEl.querySelectorAll('.reaction-entry').length;
-
-  return `${name} · ${chemicals} chemicals · ${cells} cells · ${entries} entries · ${reactions} reactions`;
-}
-
-function getChemicalSummary(chemicalEl) {
-  return normalizeText(chemicalEl.querySelector('.chem-name')?.value) || 'Chemical';
-}
-
-function getCellSummary(cellEl) {
-  return normalizeText(cellEl.querySelector('.cell-name')?.value) || 'Cell population';
-}
-
-function getEntrySummary(entryEl) {
-  const chemical = entryEl.querySelector('.entry-chemical')?.value || 'chemical';
-  const x = entryEl.querySelector('.entry-x')?.value || 'x';
-  const y = entryEl.querySelector('.entry-y')?.value || 'y';
-
-  return `${chemical} at (${x}, ${y})`;
-}
-
-function getReactionSummary(reactionEl) {
-  return normalizeText(reactionEl.querySelector('.reaction-type')?.value) || 'Reaction';
-}
-
-function getInterfaceSummary(interfaceEl) {
-  const from = interfaceEl.querySelector('.iface-device1');
-  const to = interfaceEl.querySelector('.iface-device2');
-
-  const fromText = from?.selectedOptions?.[0]?.textContent || 'Origin';
-  const toText = to?.selectedOptions?.[0]?.textContent || 'Destination';
-
-  return `${fromText} → ${toText}`;
-}
-
-function updateCardSummaries() {
-  document.querySelectorAll('.device-entry').forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = getDeviceSummary(el);
-  });
-
-  document.querySelectorAll('.chemical-entry').forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = getChemicalSummary(el);
-  });
-
-  document.querySelectorAll('.cell-entry').forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = getCellSummary(el);
-  });
-
-  document.querySelectorAll('.entry-entry').forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = getEntrySummary(el);
-  });
-
-  document.querySelectorAll('.reaction-entry').forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = getReactionSummary(el);
-  });
-
-  document.querySelectorAll('.interface-entry').forEach(el => {
-    const target = el.querySelector('.card-summary');
-    if (target) target.textContent = getInterfaceSummary(el);
-  });
 }
 
 function assertAllowed(value, allowed, label) {
@@ -1338,14 +1222,18 @@ function previewConfig() {
   try {
     const { config, warnings } = buildConfig();
 
-    dom.jsonPreview.textContent = JSON.stringify(config, null, 2);
-    renderWarnings(warnings);
-    setStatus(warnings.length ? 'running' : 'success', warnings.length ? 'JSON generated with warnings.' : 'JSON generated successfully.');
+    renderJsonPreview(dom.jsonPreview, config);
+    renderWarnings(dom.warningsBox, warnings, escapeHtml);
+    setStatus(
+      dom.statusBox,
+      warnings.length ? 'running' : 'success',
+      warnings.length ? 'JSON generated with warnings.' : 'JSON generated successfully.'
+    );
     return { config, warnings };
   } catch (error) {
-    dom.jsonPreview.textContent = 'JSON generation failed.';
-    renderWarnings([]);
-    setStatus('error', error.message);
+    renderJsonPreviewError(dom.jsonPreview);
+    renderWarnings(dom.warningsBox, [], escapeHtml);
+    setStatus(dom.statusBox, 'error', error.message);
     throw error;
   }
 }
@@ -1359,7 +1247,7 @@ async function runSimulation() {
     return;
   }
 
-  setStatus('running', 'Running simulation...');
+  setStatus(dom.statusBox, 'running', 'Running simulation...');
   dom.resultSummary.innerHTML = '';
   dom.plots.innerHTML = '';
   dom.serverBox.classList.add('d-none');
@@ -1379,10 +1267,10 @@ async function runSimulation() {
       throw new Error(detail);
     }
 
-    setStatus('success', payload?.message || 'Simulation finished successfully.');
+    setStatus(dom.statusBox, 'success', payload?.message || 'Simulation finished successfully.');
     renderBackendResults(payload);
   } catch (error) {
-    setStatus('error', error.message);
+    setStatus(dom.statusBox, 'error', error.message);
   }
 }
 
@@ -1512,5 +1400,25 @@ dom.previewBtn.addEventListener('click', () => {
     // Status box already contains the error.
   }
 });
+
+dom.copyPreviewBtn?.addEventListener('click', async () => {
+  try {
+    await copyJsonPreview(dom.jsonPreview);
+    setStatus(dom.statusBox, 'success', 'JSON preview copied to clipboard.');
+  } catch {
+    setStatus(dom.statusBox, 'error', 'Could not copy JSON preview.');
+  }
+});
+
+dom.downloadPreviewBtn?.addEventListener('click', () => {
+  try {
+    downloadJsonPreview(dom.jsonPreview);
+    setStatus(dom.statusBox, 'success', 'JSON preview downloaded.');
+  } catch {
+    setStatus(dom.statusBox, 'error', 'Could not download JSON preview.');
+  }
+});
+
+window.toggleCollapse = toggleCollapse;
 
 addDevice();
