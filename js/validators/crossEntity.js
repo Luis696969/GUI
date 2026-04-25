@@ -1,4 +1,4 @@
-import { reactionFingerprint } from '../builders/reaction.js';
+import { reactionFingerprint } from '../builders/buildReaction.js';
 
 export function validateReactionSignature(reaction, deviceName, reactionNumber) {
   if (reaction.type === 'cell_consumption_waste' && (reaction.substrates.length !== 1 || reaction.products.length !== 1 || reaction.biologicals.length !== 1)) {
